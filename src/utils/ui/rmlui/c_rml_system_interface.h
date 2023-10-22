@@ -8,7 +8,7 @@ namespace utils::ui
 	{
 	private:
 		HWND h_wnd;
-		std::chrono::system_clock::time_point start_time;
+		int64_t m_start_time;
 
 		HCURSOR cursor_default = nullptr;
 		HCURSOR cursor_move = nullptr;
@@ -18,8 +18,6 @@ namespace utils::ui
 		HCURSOR cursor_text = nullptr;
 		HCURSOR cursor_unavailable = nullptr;
 
-		LARGE_INTEGER m_time_startup;
-		double m_time_frequency;
 	public:
 		c_rml_system_interface(HWND h_wnd_);
 

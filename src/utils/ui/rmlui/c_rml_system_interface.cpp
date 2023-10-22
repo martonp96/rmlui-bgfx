@@ -3,12 +3,14 @@
 #include <RmlUi/Core/StringUtilities.h>
 #include <RmlUi/Core/SystemInterface.h>
 
+#include <bx/timer.h>
+
 #include "c_rml_system_interface.h"
 #include "rml_helpers.h"
 
 using namespace utils;
 
-ui::c_rml_system_interface::c_rml_system_interface(HWND h_wnd_) : h_wnd(h_wnd_), start_time(std::chrono::system_clock::now())
+ui::c_rml_system_interface::c_rml_system_interface(HWND h_wnd_) : h_wnd(h_wnd_)
 {
 	cursor_default = LoadCursor(nullptr, IDC_ARROW);
 	cursor_move = LoadCursor(nullptr, IDC_SIZEALL);
@@ -18,19 +20,12 @@ ui::c_rml_system_interface::c_rml_system_interface(HWND h_wnd_) : h_wnd(h_wnd_),
 	cursor_text = LoadCursor(nullptr, IDC_IBEAM);
 	cursor_unavailable = LoadCursor(nullptr, IDC_NO);
 
-	LARGE_INTEGER time_ticks_per_second;
-	QueryPerformanceFrequency(&time_ticks_per_second);
-	QueryPerformanceCounter(&m_time_startup);
-
-	m_time_frequency = 1.0 / (double)time_ticks_per_second.QuadPart;
+	m_start_time = bx::getHPCounter();
 }
 
 double ui::c_rml_system_interface::GetElapsedTime()
 {
-	LARGE_INTEGER counter;
-	QueryPerformanceCounter(&counter);
-
-	return double(counter.QuadPart - m_time_startup.QuadPart) * m_time_frequency;
+	return (bx::getHPCounter() - m_start_time) / (double)bx::getHPFrequency();
 }
 
 void ui::c_rml_system_interface::SetMouseCursor(const Rml::String& cursor_name)

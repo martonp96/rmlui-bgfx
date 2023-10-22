@@ -1,11 +1,4 @@
 #define NOMINMAX
-#include <Windows.h>
-#include <bgfx/bgfx.h>
-#include <bx/timer.h>
-#include <bx/string.h>
-#include <bx/math.h>
-
-#include <algorithm>
 #include "main.h"
 #include "utils/window/c_window.h"
 #include "utils/ui/rmlui/c_rml_core.h"
