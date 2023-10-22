@@ -1,0 +1,1 @@
+xmake project -y -k vsxmake -m "release"
