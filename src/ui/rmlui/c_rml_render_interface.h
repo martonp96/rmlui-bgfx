@@ -31,8 +31,7 @@ namespace ui
         std::unordered_map<Rml::TextureHandle, bgfx::TextureHandle> m_textures;
 
         bgfx::ViewId m_render_view_id = 0;
-
-		Eigen::Matrix4f m_transform;
+		
 		Eigen::Matrix4f m_projection;
 
         int m_width, m_height;
@@ -41,6 +40,8 @@ namespace ui
 
 	public:
 		c_rml_render_interface(int width, int height);
+
+		void setup_projection();
         void resize(int width, int height);
 
 		void RenderGeometry(Rml::Vertex* vertices, int numVertices, int* indices, int numIndices, Rml::TextureHandle texture, const Rml::Vector2f& translation) override;
@@ -58,10 +59,6 @@ namespace ui
 
 		void SetTransform(const Rml::Matrix4f* transform) override;
 
-		void set_transform_uniform(const Rml::Vector2f& translation);
-		void set_texture(Rml::TextureHandle texture);
-		void update_scissor();
-
-		bool scissor_enabled() { return m_enable_scissor_region; }
+		void render(const Rml::Vector2f& translation, bgfx::VertexBufferHandle vertex_buffer, bgfx::IndexBufferHandle index_buffer, Rml::TextureHandle texture, uint64_t state);
 	};
 }

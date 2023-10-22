@@ -12,7 +12,8 @@ static unsigned char g_fragment_shader[] = {
 ui::c_rml_render_interface::c_rml_render_interface(int width, int height) : m_width(width), m_height(height)
 {
     m_render_view_id = 0;
-    
+
+    //create the shaders for rmlui
     m_rml_vertex_layout
         .begin()
         .add(bgfx::Attrib::Position, 2, bgfx::AttribType::Float)
@@ -28,19 +29,25 @@ ui::c_rml_render_interface::c_rml_render_interface(int width, int height) : m_wi
 
     m_textured_program = bgfx::createProgram(vertex_shader, textured_frag, false);
 
+    //create a blank white texture that will be used when rmlui can't find the textures
     auto mem = bgfx::alloc(4);
     std::memset(mem->data, 0xFF, 4);
     white_texture = bgfx::createTexture2D(1, 1, false, 1, bgfx::TextureFormat::RGBA8, 0, mem);
 
-    m_projection_handle = createUniform("u_projection", bgfx::UniformType::Mat4);
-    m_transform_handle = createUniform("u_transform", bgfx::UniformType::Mat4);
-    m_translation_handle = createUniform("u_translate", bgfx::UniformType::Vec4);
-    m_sampler = createUniform("s_texColor", bgfx::UniformType::Sampler);
+    //init the uniforms which will be passed to the shader
+    m_projection_handle = bgfx::createUniform("u_projection", bgfx::UniformType::Mat4);
+    m_transform_handle = bgfx::createUniform("u_transform", bgfx::UniformType::Mat4);
+    m_translation_handle = bgfx::createUniform("u_translate", bgfx::UniformType::Vec4);
+    m_sampler = bgfx::createUniform("s_texColor", bgfx::UniformType::Sampler);
 
-    //init and set transform data once for the shader
-    m_transform.setIdentity();
-    bgfx::setUniform(m_transform_handle, m_transform.data());
+    //init and set transform data once
+    bgfx::setUniform(m_transform_handle, Rml::Matrix4f::Identity().data());
 
+    setup_projection();
+}
+
+void ui::c_rml_render_interface::setup_projection()
+{
     bx::mtxOrtho(m_projection.data(), 0.f, m_width, m_height, 0.f, -10000.f, 10000.f, 0.f, bgfx::getCaps()->homogeneousDepth);
     bgfx::setUniform(m_projection_handle, m_projection.data());
 }
@@ -50,8 +57,7 @@ void ui::c_rml_render_interface::resize(int width, int height)
     m_width = width;
     m_height = height;
 
-    bx::mtxOrtho(m_projection.data(), 0.f, m_width, m_height, 0.f, -10000.f, 10000.f, 0.f, bgfx::getCaps()->homogeneousDepth);
-    bgfx::setUniform(m_projection_handle, m_projection.data());
+    setup_projection();
 }
 
 Rml::CompiledGeometryHandle ui::c_rml_render_interface::CompileGeometry(Rml::Vertex* vertices, int numVertices,	int* indices, int numIndices, Rml::TextureHandle texture)
@@ -86,14 +92,13 @@ void ui::c_rml_render_interface::RenderCompiledGeometry(Rml::CompiledGeometryHan
 
     const auto& geometry = *geometryIter;
 
-    set_transform_uniform(translation);
-    bgfx::setVertexBuffer(0, geometry.second.m_vertex_buffer);
-    bgfx::setIndexBuffer(geometry.second.m_index_buffer);
-    bgfx::setState(0 | BGFX_STATE_WRITE_RGB | BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA));
-
-    update_scissor();
-    set_texture(geometry.second.m_texture);
-    bgfx::submit(m_render_view_id, m_textured_program);
+    render(
+        translation, 
+        geometry.second.m_vertex_buffer, 
+        geometry.second.m_index_buffer,
+        geometry.second.m_texture,
+        0 | BGFX_STATE_WRITE_RGB | BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA)
+    );
 }
 
 void ui::c_rml_render_interface::ReleaseCompiledGeometry(Rml::CompiledGeometryHandle geometryHandle)
@@ -127,14 +132,13 @@ void ui::c_rml_render_interface::RenderGeometry(Rml::Vertex* vertices, int numVe
     std::memcpy(vb.data, vertices, m_rml_vertex_layout.getSize(numVertices));
     std::memcpy(ib.data, indices, numIndices * sizeof(int));
 
-    set_transform_uniform(translation);
-    bgfx::setVertexBuffer(0, &vb);
-    bgfx::setIndexBuffer(&ib);
-    bgfx::setState(BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A | BGFX_STATE_BLEND_ALPHA);
-
-    update_scissor();
-    set_texture(texture);
-    bgfx::submit(m_render_view_id, m_textured_program);
+    render(
+        translation, 
+        vb.handle, 
+        ib.handle,
+        texture,
+        BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A | BGFX_STATE_BLEND_ALPHA
+    );
 }
 
 bool ui::c_rml_render_interface::LoadTexture(Rml::TextureHandle& textureHandle, Rml::Vector2i& textureDimensions, const Rml::String& source)
@@ -198,7 +202,6 @@ void ui::c_rml_render_interface::ReleaseTexture(Rml::TextureHandle texture)
 
 void ui::c_rml_render_interface::EnableScissorRegion(bool enable)
 {
-    //printf("%s - %d\n", __FUNCTION__, enable);
 	m_enable_scissor_region = enable;
 }
 
@@ -210,42 +213,30 @@ void ui::c_rml_render_interface::SetScissorRegion(int x, int y, int width, int h
 
 void ui::c_rml_render_interface::SetTransform(const Rml::Matrix4f* transform)
 {
-    if (!transform)
-    {
-        m_transform.setIdentity();
-    }
-    else
-    {
-        std::memcpy(m_transform.data(), transform->data(), sizeof(Eigen::Matrix4f));
-    }
-    bgfx::setUniform(m_transform_handle, m_transform.data());
+	bgfx::setUniform(m_transform_handle, transform ? transform->data() : Rml::Matrix4f::Identity().data());
 }
 
-void ui::c_rml_render_interface::set_transform_uniform(const Rml::Vector2f& translation)
+void ui::c_rml_render_interface::render(const Rml::Vector2f& translation, bgfx::VertexBufferHandle vertex_buffer, bgfx::IndexBufferHandle index_buffer, Rml::TextureHandle texture, uint64_t state)
 {
+    bgfx::setVertexBuffer(0, vertex_buffer);
+    bgfx::setIndexBuffer(index_buffer);
+    bgfx::setState(state);
+
     Eigen::Vector4f trans(translation[0], translation[1], 0.f, 0.f);
     bgfx::setUniform(m_translation_handle, trans.data());
-}
 
-void ui::c_rml_render_interface::set_texture(Rml::TextureHandle texture)
-{
-    if (auto textureIter = m_textures.find(texture); textureIter != m_textures.end())
-        bgfx::setTexture(0, m_sampler, textureIter->second);
-    else bgfx::setTexture(0, m_sampler, white_texture);
-}
-
-void ui::c_rml_render_interface::update_scissor()
-{
     if (m_enable_scissor_region)
     {
-        bgfx::setScissor(
-            static_cast<uint16_t>(m_scissor_region[0]),
-            static_cast<uint16_t>(m_scissor_region[1]),
-            static_cast<uint16_t>(m_scissor_region[2]),
-            static_cast<uint16_t>(m_scissor_region[3]));
+        bgfx::setScissor(m_scissor_region[0], m_scissor_region[1], m_scissor_region[2], m_scissor_region[3]);
     }
     else
     {
         bgfx::setViewScissor(m_render_view_id, 0, 0, 0, 0);
     }
+
+    if (auto textureIter = m_textures.find(texture); textureIter != m_textures.end())
+        bgfx::setTexture(0, m_sampler, textureIter->second);
+    else bgfx::setTexture(0, m_sampler, white_texture);
+
+    bgfx::submit(m_render_view_id, m_textured_program);
 }

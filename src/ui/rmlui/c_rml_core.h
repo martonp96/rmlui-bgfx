@@ -23,8 +23,6 @@ namespace ui
 		void destroy();
 		void update();
 
-		bool scissor_enabled() { return render_interface->scissor_enabled(); }
-
 		rml_ctx_type& get_ctx() { return ctx; }
 	};
 }
