@@ -1,6 +1,6 @@
 set_xmakever("2.7.2")
 includes("packages/**.lua")
-set_project("bgfxtest")
+set_project("rmlui-bgfx")
 
 set_arch("x64")
 set_languages("cxx20", "cxx2a")
@@ -9,7 +9,7 @@ set_symbols("debug")
 
 add_requires("bgfx_custom", "rmlui_custom", "eigen", "stb")
 
-target("bgfxtest")
+target("rmlui-bgfx")
     set_default(true)
     set_kind("binary")
     set_prefixname("")
@@ -17,6 +17,10 @@ target("bgfxtest")
     add_headerfiles("src/**.h", "include/**.h")
     add_includedirs("src/", "include/", { public = true })
     add_packages("bgfx_custom", "rmlui_custom", "eigen", "stb")
+    after_build(function (target)
+        os.cp(path.join(target:scriptdir(), "data/shaders/*.bin"), path.join(target:scriptdir(), target:targetdir()))
+        os.cp(path.join(target:scriptdir(), "data/rml/*"), path.join(target:scriptdir(), target:targetdir()))
+    end)
     --add_ldflags("/subsystem:windows")
 
 add_rules("plugin.vsxmake.autoupdate")

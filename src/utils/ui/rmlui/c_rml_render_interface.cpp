@@ -39,10 +39,10 @@ ui::c_rml_render_interface::c_rml_render_interface(int width, int height) : m_wi
         .add(bgfx::Attrib::TexCoord0, 2, bgfx::AttribType::Float)
         .end();
 
-    auto vertMemory = read_file(R"(D:\repos\bgfxtest\data\shaders\vert.bin)");
+    auto vertMemory = read_file(R"(vert.bin)");
     bgfx::ShaderHandle vertex_shader = bgfx::createShader(vertMemory);
 
-    auto texturedMemory = read_file(R"(D:\repos\bgfxtest\data\shaders\textured_frag.bin)");
+    auto texturedMemory = read_file(R"(textured_frag.bin)");
     bgfx::ShaderHandle textured_frag = bgfx::createShader(texturedMemory);
 
     m_textured_program = bgfx::createProgram(vertex_shader, textured_frag, false);
