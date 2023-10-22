@@ -1,7 +1,7 @@
 #pragma once
 #include <Windows.h>
 
-namespace utils::ui::helpers
+namespace ui::helpers
 {
 	inline Rml::String ConvertToUTF8(const std::wstring& wstr)
 	{

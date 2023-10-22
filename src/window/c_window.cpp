@@ -1,12 +1,17 @@
 #include "c_window.h"
 
-void utils::c_window::create()
+using namespace window;
+
+void c_window::create(int x, int y, int width, int height)
 {
+    m_wnd_pos = { x, y };
+    m_wnd_size = { width, height };
+
     WNDCLASSEXA wc = { sizeof(wc), CS_CLASSDC, wnd_proc, 0L, sizeof(c_window), GetModuleHandle(nullptr), nullptr, nullptr, nullptr, nullptr, "app_class", nullptr};
     if(!RegisterClassExA(&wc))
         printf("error registering window class\n");
 
-    h_wnd = CreateWindowA(wc.lpszClassName, "app_window", WS_OVERLAPPEDWINDOW, wnd_size.left, wnd_size.top, wnd_size.right, wnd_size.bottom, nullptr, nullptr, wc.hInstance, nullptr);
+    h_wnd = CreateWindowA(wc.lpszClassName, "app_window", WS_OVERLAPPEDWINDOW, m_wnd_pos[0], m_wnd_pos[1], m_wnd_size[0], m_wnd_size[1], nullptr, nullptr, wc.hInstance, nullptr);
     if (!h_wnd)
         printf("error creating the window\n");
 
@@ -15,7 +20,7 @@ void utils::c_window::create()
     //FreeConsole();
 }
 
-void utils::c_window::destroy()
+void c_window::destroy()
 {
     if(h_wnd)
 		DestroyWindow(h_wnd);
@@ -23,7 +28,7 @@ void utils::c_window::destroy()
     UnregisterClassA("app_class", GetModuleHandle(nullptr));
 }
 
-void utils::c_window::start()
+void c_window::start()
 {
     ShowWindow(h_wnd, SW_SHOWDEFAULT);
     UpdateWindow(h_wnd);
@@ -43,7 +48,7 @@ void utils::c_window::start()
     }
 }
 
-LRESULT utils::c_window::wnd_proc(HWND h_wnd, UINT u_msg, WPARAM w_param, LPARAM l_param)
+LRESULT c_window::wnd_proc(HWND h_wnd, UINT u_msg, WPARAM w_param, LPARAM l_param)
 {
     if (u_msg == WM_CLOSE || u_msg == WM_DESTROY) PostQuitMessage(0);
 
@@ -59,10 +64,10 @@ LRESULT utils::c_window::wnd_proc(HWND h_wnd, UINT u_msg, WPARAM w_param, LPARAM
         }
         else
         {
-            window->wnd_size.right = LOWORD(l_param);
-        	window->wnd_size.bottom = HIWORD(l_param);
+            window->m_wnd_size[0] = LOWORD(l_param);
+        	window->m_wnd_size[1] = HIWORD(l_param);
             if (window->wnd_resize_cb)
-                window->wnd_resize_cb(window->wnd_size);
+                window->wnd_resize_cb(window->m_wnd_size);
         }
 	}
 

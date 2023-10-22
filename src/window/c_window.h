@@ -1,30 +1,32 @@
 #pragma once
 #include "main.h"
 
-namespace utils
+namespace window
 {
 	class c_window
 	{
 	private:
 		typedef std::function<void()> update_cb_type;
 		typedef std::function<void(HWND, UINT, WPARAM, LPARAM)> wnd_proc_cb_type;
-		typedef std::function<void(RECT&)> wnd_resize_cb_type;
+		typedef std::function<void(Eigen::Vector2i&)> wnd_resize_cb_type;
 
 		update_cb_type update_cb{};
 		wnd_proc_cb_type wnd_proc_cb{};
 		wnd_resize_cb_type wnd_resize_cb{};
 
 		HWND h_wnd = nullptr;
-		RECT wnd_size = { 200, 200, 1800, 890 };
 
+		Eigen::Vector2i m_wnd_pos;
+		Eigen::Vector2i m_wnd_size;
+		
 	public:
-		void create();
+		void create(int x, int y, int width, int height);
 		void destroy();
 
 		void start();
 
 		HWND get_wnd() const { return h_wnd; }
-		RECT get_size() const { return wnd_size; }
+		Eigen::Vector2i get_size() const { return m_wnd_size; }
 
 		void on_update(const update_cb_type& cb) { update_cb = cb; };
 		void on_wnd_proc(const wnd_proc_cb_type& cb) { wnd_proc_cb = cb; };

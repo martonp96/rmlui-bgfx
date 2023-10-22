@@ -1,32 +1,13 @@
 #include "c_rml_render_interface.h"
 #include "rml_helpers.h"
 
-#include <fstream>
-#include <bgfx/bgfx.h>
-#include <bgfx/embedded_shader.h>
-#include <bx/math.h>
+static unsigned char g_vertex_shader[] = {
+	#include "vert.bin.h"
+};
 
-#define STB_IMAGE_IMPLEMENTATION
-#include <stb/stb_image.h>
-
-using namespace utils;
-
-const bgfx::Memory* read_file(const std::string& path)
-{
-    std::ifstream file(path.c_str(), std::ios::in | std::ios::binary | std::ios::ate);
-    if(!file.is_open() || !file)
-    {
-        printf("failed to open file %s\n", path.c_str());
-        return nullptr;
-    }
-
-    uint32_t size = file.tellg();
-    auto out_mem = bgfx::alloc(size);
-    file.seekg(0);
-    file.read((char*)out_mem->data, out_mem->size);
-    file.close();
-    return out_mem;
-}
+static unsigned char g_fragment_shader[] = {
+	#include "textured_frag.bin.h"
+};
 
 ui::c_rml_render_interface::c_rml_render_interface(int width, int height) : m_width(width), m_height(height)
 {
@@ -39,10 +20,10 @@ ui::c_rml_render_interface::c_rml_render_interface(int width, int height) : m_wi
         .add(bgfx::Attrib::TexCoord0, 2, bgfx::AttribType::Float)
         .end();
 
-    auto vertMemory = read_file(R"(vert.bin)");
+    auto vertMemory = bgfx::copy(g_vertex_shader, sizeof(g_vertex_shader));
     bgfx::ShaderHandle vertex_shader = bgfx::createShader(vertMemory);
 
-    auto texturedMemory = read_file(R"(textured_frag.bin)");
+    auto texturedMemory = bgfx::copy(g_fragment_shader, sizeof(g_fragment_shader));
     bgfx::ShaderHandle textured_frag = bgfx::createShader(texturedMemory);
 
     m_textured_program = bgfx::createProgram(vertex_shader, textured_frag, false);

@@ -1,8 +1,7 @@
 #pragma once
 #include "main.h"
-#include <RmlUi/Core.h>
 
-namespace utils::ui
+namespace ui
 {
 	class c_rml_system_interface : public Rml::SystemInterface
 	{

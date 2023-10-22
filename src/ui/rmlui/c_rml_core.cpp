@@ -1,10 +1,4 @@
-﻿#include <RmlUi/Core/StreamMemory.h>
-#include <RmlUi/Core/TransformPrimitive.h>
-#include <RmlUi/Debugger.h>
-#include <RmlUi/Core.h>
-#include "c_rml_core.h"
-
-using namespace utils;
+﻿#include "c_rml_core.h"
 
 static const Rml::String sandbox_default_rcss = R"(
 body { top: 0; left: 0; right: 0; bottom: 0;}

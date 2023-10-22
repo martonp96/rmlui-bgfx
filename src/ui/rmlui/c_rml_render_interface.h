@@ -1,11 +1,7 @@
 #pragma once
 #include "main.h"
 
-#include <RmlUi/Core.h>
-#include <bgfx/bgfx.h>
-#include <Eigen/Eigen>
-
-namespace utils::ui
+namespace ui
 {
 	class c_rml_render_interface : public Rml::RenderInterface
 	{

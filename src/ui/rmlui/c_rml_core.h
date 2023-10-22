@@ -1,12 +1,11 @@
 #pragma once
 #include "main.h"
 
-#include <RmlUi/Core.h>
 #include "c_rml_render_interface.h"
 #include "c_rml_system_interface.h"
 
 
-namespace utils::ui
+namespace ui
 {
 	class c_rml_core
 	{

@@ -1,14 +1,5 @@
-#include <RmlUi/Core/Context.h>
-#include <RmlUi/Core/Input.h>
-#include <RmlUi/Core/StringUtilities.h>
-#include <RmlUi/Core/SystemInterface.h>
-
-#include <bx/timer.h>
-
 #include "c_rml_system_interface.h"
 #include "rml_helpers.h"
-
-using namespace utils;
 
 ui::c_rml_system_interface::c_rml_system_interface(HWND h_wnd_) : h_wnd(h_wnd_)
 {

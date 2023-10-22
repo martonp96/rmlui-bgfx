@@ -1,7 +1,7 @@
 #pragma once
 #include "main.h"
 
-namespace utils::ui
+namespace ui
 {
 	class c_bgfx_core
 	{

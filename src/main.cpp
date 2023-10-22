@@ -1,39 +1,38 @@
-#define NOMINMAX
+#define STB_IMAGE_IMPLEMENTATION
 #include "main.h"
-#include "utils/window/c_window.h"
-#include "utils/ui/rmlui/c_rml_core.h"
-#include "utils/ui/bgfx/c_bgfx_core.h"
+#include "window/c_window.h"
+#include "ui/rmlui/c_rml_core.h"
+#include "ui/bgfx/c_bgfx_core.h"
 
-void main()
+int main()
 {
-    utils::c_window window;
-    utils::ui::c_rml_core rml_core;
-    utils::ui::c_bgfx_core bgfx_core;
+    window::c_window window;
+    ui::c_rml_core rml_core;
+    ui::c_bgfx_core bgfx_core;
 
-    window.create();
+    window.create(200, 200, 1800, 890);
 
     const auto size = window.get_size();
-    const auto width = size.right;
-    const auto height = size.bottom;
+    const auto width = size[0];
+    const auto height = size[1];
 
     bgfx_core.create(window.get_wnd(), width, height);
     rml_core.create(window.get_wnd(), width, height);
     
     window.on_update([&]() {
         bgfx_core.pre_render();
-
     	//bgfx_core.debug_render();
         rml_core.update();
         bgfx_core.post_render();
     });
 
-    window.on_resize([&](RECT& size) {
-        bgfx_core.resize(size.right, size.bottom);
-        rml_core.resize(size.right, size.bottom);
+    window.on_resize([&](Eigen::Vector2i& size) {
+        bgfx_core.resize(size[0], size[1]);
+        rml_core.resize(size[0], size[1]);
     });
 
     window.on_wnd_proc([&](HWND h_wnd, UINT msg, WPARAM w_param, LPARAM l_param) {
-        utils::ui::c_rml_system_interface::wnd_proc(rml_core.get_ctx().get(), h_wnd, msg, w_param, l_param);
+        ui::c_rml_system_interface::wnd_proc(rml_core.get_ctx().get(), h_wnd, msg, w_param, l_param);
     });
 
     window.start();
@@ -43,4 +42,6 @@ void main()
     rml_core.destroy();
     window.destroy();
     bgfx_core.destroy();
+
+    return 0;
 }
