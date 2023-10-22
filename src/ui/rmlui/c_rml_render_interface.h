@@ -15,6 +15,7 @@ namespace ui
 
 		bool m_enable_scissor_region = false;
         Eigen::Vector4i m_scissor_region;
+
         bgfx::ProgramHandle m_textured_program;
         bgfx::VertexLayout m_rml_vertex_layout{};
 		bgfx::TextureHandle white_texture;
