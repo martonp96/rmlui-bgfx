@@ -1,17 +1,28 @@
 #include "c_rml_system_interface.h"
 #include "rml_helpers.h"
 
-ui::c_rml_system_interface::c_rml_system_interface(HWND h_wnd_) : h_wnd(h_wnd_)
+ui::c_rml_system_interface::c_rml_system_interface(SDL_Window* window) : m_window(window)
 {
-	cursor_default = LoadCursor(nullptr, IDC_ARROW);
-	cursor_move = LoadCursor(nullptr, IDC_SIZEALL);
-	cursor_pointer = LoadCursor(nullptr, IDC_HAND);
-	cursor_resize = LoadCursor(nullptr, IDC_SIZENWSE);
-	cursor_cross = LoadCursor(nullptr, IDC_CROSS);
-	cursor_text = LoadCursor(nullptr, IDC_IBEAM);
-	cursor_unavailable = LoadCursor(nullptr, IDC_NO);
+	m_cursor_default = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW);
+	m_cursor_move = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_SIZEALL);
+	m_cursor_pointer = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_HAND);
+	m_cursor_resize = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_SIZENWSE);
+	m_cursor_cross = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_CROSSHAIR);
+	m_cursor_text = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_IBEAM);
+	m_cursor_unavailable = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_NO);
 
 	m_start_time = bx::getHPCounter();
+}
+
+ui::c_rml_system_interface::~c_rml_system_interface()
+{
+	SDL_FreeCursor(m_cursor_default);
+	SDL_FreeCursor(m_cursor_move);
+	SDL_FreeCursor(m_cursor_pointer);
+	SDL_FreeCursor(m_cursor_resize);
+	SDL_FreeCursor(m_cursor_cross);
+	SDL_FreeCursor(m_cursor_text);
+	SDL_FreeCursor(m_cursor_unavailable);
 }
 
 double ui::c_rml_system_interface::GetElapsedTime()
@@ -21,92 +32,39 @@ double ui::c_rml_system_interface::GetElapsedTime()
 
 void ui::c_rml_system_interface::SetMouseCursor(const Rml::String& cursor_name)
 {
-	if (!h_wnd) return;
+	SDL_Cursor* cursor = nullptr;
 
-	HCURSOR cursor_handle = nullptr;
 	if (cursor_name.empty() || cursor_name == "arrow")
-		cursor_handle = cursor_default;
+		cursor = m_cursor_default;
 	else if (cursor_name == "move")
-		cursor_handle = cursor_move;
+		cursor = m_cursor_move;
 	else if (cursor_name == "pointer")
-		cursor_handle = cursor_pointer;
+		cursor = m_cursor_pointer;
 	else if (cursor_name == "resize")
-		cursor_handle = cursor_resize;
+		cursor = m_cursor_resize;
 	else if (cursor_name == "cross")
-		cursor_handle = cursor_cross;
+		cursor = m_cursor_cross;
 	else if (cursor_name == "text")
-		cursor_handle = cursor_text;
+		cursor = m_cursor_text;
 	else if (cursor_name == "unavailable")
-		cursor_handle = cursor_unavailable;
-	else if (cursor_name.find("rmlui-scroll") != std::string::npos)
-		cursor_handle = cursor_move;
+		cursor = m_cursor_unavailable;
+	else if (Rml::StringUtilities::StartsWith(cursor_name, "rmlui-scroll"))
+		cursor = m_cursor_move;
 
-	if (cursor_handle)
-	{
-		SetCursor(cursor_handle);
-		SetClassLongPtrA(h_wnd, GCLP_HCURSOR, (LONG_PTR)cursor_handle);
-	}
+	if (cursor)
+		SDL_SetCursor(cursor);
 }
 
 void ui::c_rml_system_interface::SetClipboardText(const Rml::String& text_utf8)
 {
-	if (!h_wnd || !OpenClipboard(h_wnd)) return;
-	
-	EmptyClipboard();
-
-	const std::wstring text = helpers::ConvertToUTF16(text_utf8);
-	const size_t size = sizeof(wchar_t) * (text.size() + 1);
-
-	HGLOBAL clipboard_data = GlobalAlloc(GMEM_FIXED, size);
-	memcpy(clipboard_data, text.data(), size);
-
-	if (SetClipboardData(CF_UNICODETEXT, clipboard_data) == nullptr)
-	{
-		CloseClipboard();
-		GlobalFree(clipboard_data);
-	}
-	else
-		CloseClipboard();
+	SDL_SetClipboardText(text_utf8.c_str());
 }
 
 void ui::c_rml_system_interface::GetClipboardText(Rml::String& text)
 {
-	if (!h_wnd || !OpenClipboard(h_wnd)) return;
-
-	HANDLE clipboard_data = GetClipboardData(CF_UNICODETEXT);
-	if (clipboard_data == nullptr)
-	{
-		CloseClipboard();
-		return;
-	}
-
-	const wchar_t* clipboard_text = (const wchar_t*)GlobalLock(clipboard_data);
-	if (clipboard_text)
-		text = helpers::ConvertToUTF8(clipboard_text);
-	GlobalUnlock(clipboard_data);
-
-	CloseClipboard();
-}
-
-void ui::c_rml_system_interface::ActivateKeyboard(Rml::Vector2f caret_position, float line_height)
-{
-	if (!h_wnd) return;
-	if (HIMC himc = ImmGetContext(h_wnd))
-	{
-		COMPOSITIONFORM comp = {};
-		comp.ptCurrentPos.x = (LONG)caret_position.x;
-		comp.ptCurrentPos.y = (LONG)caret_position.y;
-		comp.dwStyle = CFS_FORCE_POSITION;
-		ImmSetCompositionWindow(himc, &comp);
-
-		CANDIDATEFORM cand = {};
-		cand.dwStyle = CFS_CANDIDATEPOS;
-		cand.ptCurrentPos.x = (LONG)caret_position.x;
-		cand.ptCurrentPos.y = (LONG)caret_position.y;
-		ImmSetCandidateWindow(himc, &cand);
-
-		ImmReleaseContext(h_wnd, himc);
-	}
+	char* raw_text = SDL_GetClipboardText();
+	text = Rml::String(raw_text);
+	SDL_free(raw_text);
 }
 
 bool ui::c_rml_system_interface::LogMessage(Rml::Log::Type type, const Rml::String& message)
@@ -140,84 +98,39 @@ bool ui::c_rml_system_interface::LogMessage(Rml::Log::Type type, const Rml::Stri
     return true;
 }
 
-bool ui::c_rml_system_interface::wnd_proc(Rml::Context* context, HWND window_handle, UINT message, WPARAM w_param, LPARAM l_param)
+using namespace ui::helpers;
+
+bool ui::c_rml_system_interface::wnd_proc(Rml::Context* context, SDL_Event& ev)
 {
 	if (!context)
 		return true;
 
-	static bool tracking_mouse_leave = false;
-
 	bool result = true;
 
-	switch (message)
+	switch (ev.type)
 	{
-	case WM_LBUTTONDOWN:
-		result = context->ProcessMouseButtonDown(0, helpers::GetKeyModifierState());
-		SetCapture(window_handle);
+	case SDL_MOUSEMOTION: result = context->ProcessMouseMove(ev.motion.x, ev.motion.y, GetKeyModifierState()); break;
+	case SDL_MOUSEBUTTONDOWN:
+		result = context->ProcessMouseButtonDown(ConvertMouseButton(ev.button.button), GetKeyModifierState());
+		SDL_CaptureMouse(SDL_TRUE);
 		break;
-	case WM_LBUTTONUP:
-		ReleaseCapture();
-		result = context->ProcessMouseButtonUp(0, helpers::GetKeyModifierState());
+	case SDL_MOUSEBUTTONUP:
+		SDL_CaptureMouse(SDL_FALSE);
+		result = context->ProcessMouseButtonUp(ConvertMouseButton(ev.button.button), GetKeyModifierState());
 		break;
-	case WM_RBUTTONDOWN: result = context->ProcessMouseButtonDown(1, helpers::GetKeyModifierState()); break;
-	case WM_RBUTTONUP: result = context->ProcessMouseButtonUp(1, helpers::GetKeyModifierState()); break;
-	case WM_MBUTTONDOWN: result = context->ProcessMouseButtonDown(2, helpers::GetKeyModifierState()); break;
-	case WM_MBUTTONUP: result = context->ProcessMouseButtonUp(2, helpers::GetKeyModifierState()); break;
-	case WM_MOUSEMOVE:
-		result = context->ProcessMouseMove(static_cast<int>((short)LOWORD(l_param)), static_cast<int>((short)HIWORD(l_param)),
-			helpers::GetKeyModifierState());
-
-		if (!tracking_mouse_leave)
-		{
-			TRACKMOUSEEVENT tme = {};
-			tme.cbSize = sizeof(TRACKMOUSEEVENT);
-			tme.dwFlags = TME_LEAVE;
-			tme.hwndTrack = window_handle;
-			tracking_mouse_leave = TrackMouseEvent(&tme);
-		}
+	case SDL_MOUSEWHEEL: result = context->ProcessMouseWheel(float(-ev.wheel.y), GetKeyModifierState()); break;
+	case SDL_KEYDOWN:
+		result = context->ProcessKeyDown(ConvertKey(ev.key.keysym.sym), GetKeyModifierState());
+		if (ev.key.keysym.sym == SDLK_RETURN || ev.key.keysym.sym == SDLK_KP_ENTER)
+			result &= context->ProcessTextInput('\n');
 		break;
-	case WM_MOUSEWHEEL:
-		result = context->ProcessMouseWheel(static_cast<float>((short)HIWORD(w_param)) / static_cast<float>(-WHEEL_DELTA),
-			helpers::GetKeyModifierState());
-		break;
-	case WM_MOUSELEAVE:
-		result = context->ProcessMouseLeave();
-		tracking_mouse_leave = false;
-		break;
-	case WM_KEYDOWN: result = context->ProcessKeyDown(helpers::ConvertKey((int)w_param), helpers::GetKeyModifierState()); break;
-	case WM_KEYUP: result = context->ProcessKeyUp(helpers::ConvertKey((int)w_param), helpers::GetKeyModifierState()); break;
-	case WM_CHAR:
+	case SDL_KEYUP: result = context->ProcessKeyUp(ConvertKey(ev.key.keysym.sym), GetKeyModifierState()); break;
+	case SDL_TEXTINPUT: result = context->ProcessTextInput(Rml::String(&ev.text.text[0])); break;
+	case SDL_WINDOWEVENT:
 	{
-		static wchar_t first_u16_code_unit = 0;
-
-		const wchar_t c = (wchar_t)w_param;
-		Rml::Character character = (Rml::Character)c;
-
-		// Windows sends two-wide characters as two messages.
-		if (c >= 0xD800 && c < 0xDC00)
+		switch (ev.window.event)
 		{
-			// First 16-bit code unit of a two-wide character.
-			first_u16_code_unit = c;
-		}
-		else
-		{
-			if (c >= 0xDC00 && c < 0xE000 && first_u16_code_unit != 0)
-			{
-				// Second 16-bit code unit of a two-wide character.
-				Rml::String utf8 = helpers::ConvertToUTF8(std::wstring{first_u16_code_unit, c});
-				character = Rml::StringUtilities::ToCharacter(utf8.data());
-			}
-			else if (c == '\r')
-			{
-				// Windows sends new-lines as carriage returns, convert to endlines.
-				character = (Rml::Character)'\n';
-			}
-
-			first_u16_code_unit = 0;
-
-			// Only send through printable characters.
-			if (((char32_t)character >= 32 || character == (Rml::Character)'\n') && character != (Rml::Character)127)
-				result = context->ProcessTextInput(character);
+		case SDL_WINDOWEVENT_LEAVE: context->ProcessMouseLeave(); break;
 		}
 	}
 	break;

@@ -373,10 +373,10 @@ public:
 };
 
 
-void ui::c_rml_core::create(HWND h_wnd, int width, int height)
+void ui::c_rml_core::create(SDL_Window* window, int width, int height)
 {
 	render_interface = std::make_unique<c_rml_render_interface>(width, height);
-	system_interface = std::make_unique<c_rml_system_interface>(h_wnd);
+	system_interface = std::make_unique<c_rml_system_interface>(window);
 
 	Rml::SetRenderInterface(render_interface.get());
 	Rml::SetSystemInterface(system_interface.get());

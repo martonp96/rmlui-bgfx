@@ -7,72 +7,78 @@ void c_window::create(int x, int y, int width, int height)
     m_wnd_pos = { x, y };
     m_wnd_size = { width, height };
 
-    WNDCLASSEXA wc = { sizeof(wc), CS_CLASSDC, wnd_proc, 0L, sizeof(c_window), GetModuleHandle(nullptr), nullptr, nullptr, nullptr, nullptr, "app_class", nullptr};
-    if(!RegisterClassExA(&wc))
-        printf("error registering window class\n");
+    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS | SDL_INIT_TIMER) != 0)
+        return;
 
-    h_wnd = CreateWindowA(wc.lpszClassName, "app_window", WS_OVERLAPPEDWINDOW, m_wnd_pos[0], m_wnd_pos[1], m_wnd_size[0], m_wnd_size[1], nullptr, nullptr, wc.hInstance, nullptr);
-    if (!h_wnd)
-        printf("error creating the window\n");
+    SDL_SetHint(SDL_HINT_MOUSE_FOCUS_CLICKTHROUGH, "1");
 
-    SetWindowLongPtrA(h_wnd, 0, (LONG_PTR)this);
+    m_window = SDL_CreateWindow("app_window", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, SDL_WINDOW_RESIZABLE);
+    if (!m_window)
+    {
+        Rml::Log::Message(Rml::Log::LT_ERROR, "SDL error on create window: %s\n", SDL_GetError());
+        return;
+    }
 
+    m_running = true;
     //FreeConsole();
 }
 
 void c_window::destroy()
 {
-    if(h_wnd)
-		DestroyWindow(h_wnd);
+    m_running = false;
 
-    UnregisterClassA("app_class", GetModuleHandle(nullptr));
+    SDL_DestroyWindow(m_window);
+    SDL_Quit();
 }
 
 void c_window::start()
 {
-    ShowWindow(h_wnd, SW_SHOWDEFAULT);
-    UpdateWindow(h_wnd);
+    SDL_Event event;
 
-    MSG msg{ };
-    while (msg.message != WM_QUIT) 
+    while(m_running)
     {
-        if (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) 
+        while (SDL_PollEvent(&event))
         {
-            TranslateMessage(&msg);
-            DispatchMessageA(&msg);
-            continue;
+            switch (event.type)
+        	{
+            case SDL_QUIT:
+                m_running = false;
+                break;
+
+            case SDL_WINDOWEVENT:
+            {
+                const SDL_WindowEvent& ev = event.window;
+                switch (ev.event)
+                {
+                case SDL_WINDOWEVENT_RESIZED:
+                case SDL_WINDOWEVENT_SIZE_CHANGED:
+
+                    m_wnd_size[0] = ev.data1;
+                    m_wnd_size[1] = ev.data2;
+                    if (wnd_resize_cb)
+                        wnd_resize_cb(m_wnd_size);
+
+                    break;
+
+                case SDL_WINDOWEVENT_CLOSE:
+                    m_running = false;
+                    break;
+                }
+                break;
+            }
+            default:
+                key_event(event);
+                break;
+            }
         }
 
-        if(update_cb)
+        if (update_cb)
             update_cb();
     }
 }
 
-LRESULT c_window::wnd_proc(HWND h_wnd, UINT u_msg, WPARAM w_param, LPARAM l_param)
+void c_window::key_event(SDL_Event& ev)
 {
-    if (u_msg == WM_CLOSE || u_msg == WM_DESTROY) PostQuitMessage(0);
-
-    const auto window = (c_window*)GetWindowLongPtrA(h_wnd, 0);
-    if (!window)
-        return DefWindowProcA(h_wnd, u_msg, w_param, l_param);
-
-	if(u_msg == WM_SIZE)
-	{
-        if (w_param == SIZE_MINIMIZED)
-        {
-			//TODO: minimize_cb
-        }
-        else
-        {
-            window->m_wnd_size[0] = LOWORD(l_param);
-        	window->m_wnd_size[1] = HIWORD(l_param);
-            if (window->wnd_resize_cb)
-                window->wnd_resize_cb(window->m_wnd_size);
-        }
-	}
-
-    if (window->wnd_proc_cb)
-        window->wnd_proc_cb(h_wnd, u_msg, w_param, l_param);
-
-    return DefWindowProcA(h_wnd, u_msg, w_param, l_param);
+    if (m_key_event_cb)
+        m_key_event_cb(ev);
 }

@@ -29,3 +29,7 @@
 
 //stb
 #include <stb/stb_image.h>
+
+//sdl
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_syswm.h>

@@ -1,14 +1,34 @@
 #include "c_bgfx_core.h"
 
-void ui::c_bgfx_core::create(HWND h_wnd, int width, int height)
+void ui::c_bgfx_core::create(SDL_Window* window, int width, int height)
 {
+    SDL_SysWMinfo wmi;
+    SDL_VERSION(&wmi.version);
+    if (!SDL_GetWindowWMInfo(window, &wmi)) {
+        return;
+    }
+
     bgfx::Init init;
     init.type = bgfx::RendererType::Direct3D11;
     init.vendorId = BGFX_PCI_ID_NONE;
-    init.platformData.nwh = h_wnd;
     init.resolution.width = width;
     init.resolution.height = height;
     init.resolution.reset = BGFX_RESET_VSYNC;
+
+#if BX_PLATFORM_LINUX || BX_PLATFORM_BSD
+    init.platformData.ndt = wmi.info.x11.display;
+    init.platformData.nwh = (void*)(uintptr_t)wmi.info.x11.window;
+#elif BX_PLATFORM_OSX
+    init.platformData.ndt = nullptr;
+    init.platformData.nwh = wmi.info.cocoa.window;
+#elif BX_PLATFORM_WINDOWS
+    init.platformData.ndt = nullptr;
+    init.platformData.nwh = wmi.info.win.window;
+#elif BX_PLATFORM_STEAMLINK
+    init.platformData.ndt = wmi.info.vivante.display;
+    init.platformData.nwh = wmi.info.vivante.window;
+#endif
+
     bgfx::init(init);
 
     m_width = width;

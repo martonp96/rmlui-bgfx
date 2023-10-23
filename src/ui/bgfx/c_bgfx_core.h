@@ -11,7 +11,7 @@ namespace ui
 
 
 	public:
-		void create(HWND h_wnd, int width, int height);
+		void create(SDL_Window* window, int width, int height);
 		void destroy();
 		void resize(int width, int height);
 		void pre_render();

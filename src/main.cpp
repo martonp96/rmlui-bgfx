@@ -31,8 +31,8 @@ int main()
         rml_core.resize(size[0], size[1]);
     });
 
-    window.on_wnd_proc([&](HWND h_wnd, UINT msg, WPARAM w_param, LPARAM l_param) {
-        ui::c_rml_system_interface::wnd_proc(rml_core.get_ctx().get(), h_wnd, msg, w_param, l_param);
+    window.on_key_event([&](SDL_Event& ev) {
+        ui::c_rml_system_interface::wnd_proc(rml_core.get_ctx().get(), ev);
     });
 
     window.start();

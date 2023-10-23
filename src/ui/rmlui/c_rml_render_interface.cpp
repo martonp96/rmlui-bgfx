@@ -231,7 +231,7 @@ void ui::c_rml_render_interface::render(const Rml::Vector2f& translation, bgfx::
     }
     else
     {
-        bgfx::setScissor(0, 0, m_width, m_height);
+        bgfx::setViewScissor(m_render_view_id);
     }
 
     if (auto textureIter = m_textures.find(texture); textureIter != m_textures.end())
