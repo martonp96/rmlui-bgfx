@@ -7,8 +7,12 @@ void CWindow::Create(int x, int y, int width, int height)
     m_wnd_pos = { x, y };
     m_wnd_size = { width, height };
 
-    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS | SDL_INIT_TIMER) != 0)
+    auto rc = SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS | SDL_INIT_TIMER);
+    if (rc != 0)
+    {
+        printf("SDL error on init: %d %s\n", rc, SDL_GetError());
         return;
+    }
 
     SDL_SetHint(SDL_HINT_MOUSE_FOCUS_CLICKTHROUGH, "1");
 
