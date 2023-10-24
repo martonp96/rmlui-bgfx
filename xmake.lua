@@ -50,18 +50,6 @@ target("rmlui-bgfx")
     end)
     after_build(function (target)
         os.cp(path.join(target:scriptdir(), "data/rml/*"), path.join(target:scriptdir(), target:targetdir()))
-
-        --[[print(target:pkgs())
-        for pkg, pkg_details in pairs(target:pkgs()) do
-            print(pkg_details._INFO)
-            for i, dir in ipairs(pkg_details._INFO.sysincludedirs) do
-                --os.cp(dir, target:targetdir())
-            end
-            for i, dir in ipairs(pkg_details._INFO.libfiles) do
-                print(dir)
-                --os.cp(dir, path.join(target:targetdir(), dir:match("([^/\\]+)$")))
-            end
-        end]]
     end)
 
 add_rules("plugin.vsxmake.autoupdate")
