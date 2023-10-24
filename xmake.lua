@@ -28,7 +28,7 @@ target("rmlui-bgfx")
     add_includedirs("src/", "include/", { public = true })
     add_packages("bgfx_custom", "rmlui_custom", "eigen", "stb", "libsdl")
     add_rules("utils.bin2c")
-    on_config(function (target)
+    on_load(function (target)
         local shadercPath = path.join(target:pkg("bgfx_custom"):installdir(), "bin/shadercRelease" .. (is_host("windows") and ".exe" or ""))
         for _, shader in pairs(shaders) do
             local cmd = shadercPath ..
