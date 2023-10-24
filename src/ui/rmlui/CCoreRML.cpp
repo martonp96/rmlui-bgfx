@@ -33,11 +33,11 @@ void ui::CCoreRML::Destroy()
 	Rml::Shutdown();
 }
 
-void ui::CCoreRML::Update()
+void ui::CCoreRML::Render()
 {
 	if (!m_ctx)
 		return;
-	
+
 	m_ctx->Update();
 	m_ctx->Render();
 }

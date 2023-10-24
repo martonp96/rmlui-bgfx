@@ -1,5 +1,9 @@
 #include "CSystemInterface.h"
 #include "rml_helpers.h"
+#include "window/CEvent.h"
+
+using namespace window;
+using namespace ui::helpers;
 
 ui::CSystemInterface::CSystemInterface(SDL_Window* window) : m_window(window)
 {
@@ -98,43 +102,50 @@ bool ui::CSystemInterface::LogMessage(Rml::Log::Type type, const Rml::String& me
     return true;
 }
 
-using namespace ui::helpers;
-
-bool ui::CSystemInterface::OnEvent(Rml::Context* context, SDL_Event& ev)
+bool ui::CSystemInterface::OnEvent(Rml::Context* context, CEvent* event)
 {
 	if (!context)
 		return true;
 
 	bool result = true;
 
-	switch (ev.type)
+	switch (event->m_type)
 	{
-	case SDL_MOUSEMOTION: result = context->ProcessMouseMove(ev.motion.x, ev.motion.y, GetKeyModifierState()); break;
-	case SDL_MOUSEBUTTONDOWN:
-		result = context->ProcessMouseButtonDown(ConvertMouseButton(ev.button.button), GetKeyModifierState());
-		SDL_CaptureMouse(SDL_TRUE);
+	case SDL_MOUSEMOTION: {
+		const auto ev = (CEventMouseMotion*)event;
+		result = context->ProcessMouseMove(ev->m_x, ev->m_y, GetKeyModifierState(ev->m_key_mod));
 		break;
-	case SDL_MOUSEBUTTONUP:
-		SDL_CaptureMouse(SDL_FALSE);
-		result = context->ProcessMouseButtonUp(ConvertMouseButton(ev.button.button), GetKeyModifierState());
-		break;
-	case SDL_MOUSEWHEEL: result = context->ProcessMouseWheel(float(-ev.wheel.y), GetKeyModifierState()); break;
-	case SDL_KEYDOWN:
-		result = context->ProcessKeyDown(ConvertKey(ev.key.keysym.sym), GetKeyModifierState());
-		if (ev.key.keysym.sym == SDLK_RETURN || ev.key.keysym.sym == SDLK_KP_ENTER)
-			result &= context->ProcessTextInput('\n');
-		break;
-	case SDL_KEYUP: result = context->ProcessKeyUp(ConvertKey(ev.key.keysym.sym), GetKeyModifierState()); break;
-	case SDL_TEXTINPUT: result = context->ProcessTextInput(Rml::String(&ev.text.text[0])); break;
-	case SDL_WINDOWEVENT:
-	{
-		switch (ev.window.event)
-		{
-		case SDL_WINDOWEVENT_LEAVE: context->ProcessMouseLeave(); break;
-		}
 	}
-	break;
-	default: break;
+	case SDL_MOUSEBUTTONDOWN: {
+		const auto ev = (CEventMouseButton*)event;
+		if(ev->m_down) result = context->ProcessMouseButtonDown(ConvertMouseButton(ev->m_btn), GetKeyModifierState(ev->m_key_mod));
+		else result = context->ProcessMouseButtonUp(ConvertMouseButton(ev->m_btn), GetKeyModifierState(ev->m_key_mod));
+		break;
+	}
+	case SDL_MOUSEWHEEL: {
+		const auto ev = (CEventMouseWheel*)event;
+		result = context->ProcessMouseWheel(ev->m_y, GetKeyModifierState(ev->m_key_mod));
+		break;
+	}
+	case SDL_KEYDOWN: {
+		const auto ev = (CEventKey*)event;
+		if (ev->m_down)
+		{
+			result = context->ProcessKeyDown(ConvertKey(ev->m_key), GetKeyModifierState(ev->m_key_mod));
+			if (ev->m_key == SDLK_RETURN || ev->m_key == SDLK_KP_ENTER)
+				result &= context->ProcessTextInput('\n');
+		}
+		else result = context->ProcessKeyUp(ConvertKey(ev->m_key), GetKeyModifierState(ev->m_key_mod));
+		break;
+	}
+	case SDL_TEXTINPUT: {
+		const auto ev = (CEventTextInput*)event;
+		result = context->ProcessTextInput(Rml::String(ev->m_data));
+		break;
+	}
+	case SDL_WINDOWEVENT_LEAVE:
+		context->ProcessMouseLeave();
+		break;
 	}
 
 	return result;

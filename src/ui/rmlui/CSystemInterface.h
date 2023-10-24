@@ -29,6 +29,6 @@ namespace ui
 
 		bool LogMessage(Rml::Log::Type type, const Rml::String& message) override;
 
-		static bool OnEvent(Rml::Context* context, SDL_Event& ev);
+		static bool OnEvent(Rml::Context* context, window::CEvent* ev);
 	};
 }

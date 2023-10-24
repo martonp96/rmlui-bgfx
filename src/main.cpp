@@ -20,11 +20,15 @@ int main()
         bgfx_core.Create(window.GetWindowPtr(), width, height);
         rml_core.Create(window.GetWindowPtr(), width, height);
     });
-        
-    window.OnUpdate([&]() {
+
+    window.OnUninit([&]() {
+        rml_core.Destroy();
+        bgfx_core.Destroy();
+    });
+    
+    window.OnRender([&]() {
         bgfx_core.PreRender();
-    	//bgfx_core.DebugRender();
-        rml_core.Update();
+        rml_core.Render();
         bgfx_core.PostRender();
     });
 
@@ -33,17 +37,14 @@ int main()
 		rml_core.Resize(size[0], size[1]);
     });
 
-    window.OnKeyEvent([&](SDL_Event& ev) {
+    window.OnEvent([&](window::CEvent* ev) {
 		ui::CSystemInterface::OnEvent(rml_core.GetContext().get(), ev);
     });
 
     window.Start();
+    window.Destroy();
 
     printf("shutting down\n");
-
-    rml_core.Destroy();
-    window.Destroy();
-    bgfx_core.Destroy();
 
     return 0;
 }

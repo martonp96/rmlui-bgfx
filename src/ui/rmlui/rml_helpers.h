@@ -137,10 +137,8 @@ namespace ui::helpers
 		}
 	}
 
-	inline int GetKeyModifierState()
+	inline int GetKeyModifierState(SDL_Keymod sdl_mods)
 	{
-		SDL_Keymod sdl_mods = SDL_GetModState();
-
 		int retval = 0;
 
 		if (sdl_mods & KMOD_CTRL)

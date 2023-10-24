@@ -20,7 +20,7 @@ namespace ui
 		void Create(SDL_Window* window, int width, int height);
 		void Resize(int width, int height);
 		void Destroy();
-		void Update();
+		void Render();
 
 		rml_ctx_type& GetContext() { return m_ctx; }
 	};

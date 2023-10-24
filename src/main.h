@@ -6,6 +6,7 @@
 #include <chrono>
 #include <fstream>
 #include <algorithm>
+#include <mutex>
 
 //bgfx
 #include <bgfx/bgfx.h>
@@ -13,6 +14,7 @@
 #include <bx/math.h>
 #include <bx/timer.h>
 #include <bx/thread.h>
+#include <bx/spscqueue.h>
 
 //eigen
 #include <Eigen/Eigen>
@@ -33,3 +35,8 @@
 //sdl
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_syswm.h>
+
+namespace window
+{
+	class CEvent;
+}
