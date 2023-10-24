@@ -16,10 +16,13 @@ local shaders = {
 
 local shadersPath = "data/shaders/"
 local shaderType = "s_5_0"
+local shaderPlat = "windows"
 if is_host("macosx") then 
     shaderType = "metal"
+    shaderPlat = "osx"
 elseif is_host("linux") then
     shaderType = "spirv"
+    shaderPlat = "linux"
 end
 
 target("rmlui-bgfx")
@@ -42,7 +45,7 @@ target("rmlui-bgfx")
                 " -i " .. path.join(target:scriptdir(), shadersPath, shader[3]) ..
                 " -p " .. shaderType ..
                 " --type " .. shader[4] ..
-                " --platform " .. os.host() ..
+                " --platform " .. shaderPlat ..
                 " --verbose"
     
             if shader[5] ~= nil and shader[5] ~= "" then
