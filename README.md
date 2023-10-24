@@ -7,6 +7,13 @@
 ## Generate Visual Studio project files
 - Run generate_project.bat
 
+## Platform compatibility (tested)
+|                        | D3D11 |  Vulkan | Metal |
+|------------------------|-------|---------|-------|
+| Windows 11             |  ✅   |    -    |   -   |
+| Ubuntu 22.04 (Wayland) |   -   |    ✅   |   -   |
+| macOS                  |   -   |    -    |   ✅  |
+
 ## Credits
 - [xmake](http://xmake.io)
 - [bgfx](https://github.com/bkaradzic/bgfx)
