@@ -16,9 +16,11 @@ int main()
     const auto width = size[0];
     const auto height = size[1];
 
-    bgfx_core.Create(window.GetWindowPtr(), width, height);
-    rml_core.Create(window.GetWindowPtr(), width, height);
-    
+    window.OnInit([&]() {
+        bgfx_core.Create(window.GetWindowPtr(), width, height);
+        rml_core.Create(window.GetWindowPtr(), width, height);
+    });
+        
     window.OnUpdate([&]() {
         bgfx_core.PreRender();
     	//bgfx_core.DebugRender();
@@ -28,11 +30,11 @@ int main()
 
     window.OnResize([&](Eigen::Vector2i& size) {
         bgfx_core.Resize(size[0], size[1]);
-        rml_core.Resize(size[0], size[1]);
+		rml_core.Resize(size[0], size[1]);
     });
 
     window.OnKeyEvent([&](SDL_Event& ev) {
-        ui::CSystemInterface::OnEvent(rml_core.GetContext().get(), ev);
+		ui::CSystemInterface::OnEvent(rml_core.GetContext().get(), ev);
     });
 
     window.Start();

@@ -6,10 +6,12 @@ namespace window
 	class CWindow
 	{
 	private:
+		typedef std::function<void()> init_cb_type;
 		typedef std::function<void()> update_cb_type;
 		typedef std::function<void(SDL_Event&)> key_event_cb_type;
 		typedef std::function<void(Eigen::Vector2i&)> wnd_resize_cb_type;
 
+		init_cb_type m_init_cb{};
 		update_cb_type m_update_cb{};
 		key_event_cb_type m_key_event_cb{};
 		wnd_resize_cb_type m_wnd_resize_cb{};
@@ -32,5 +34,9 @@ namespace window
 		void OnUpdate(const update_cb_type& cb) { m_update_cb = cb; };
 		void OnKeyEvent(const key_event_cb_type& cb) { m_key_event_cb = cb; };
 		void OnResize(const wnd_resize_cb_type& cb) { m_wnd_resize_cb = cb; };
+		void OnInit(const init_cb_type& cb) { m_init_cb = cb; };
+
+	private:
+		static int32_t RunApiThread(bx::Thread* self, void* userData);
 	};
 }

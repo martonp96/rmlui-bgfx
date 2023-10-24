@@ -37,16 +37,37 @@ void CWindow::Destroy()
     SDL_Quit();
 }
 
+int32_t CWindow::RunApiThread(bx::Thread* self, void* userData)
+{
+    const auto user_data = (CWindow*)userData;
+    if(user_data->m_init_cb)
+		user_data->m_init_cb();
+
+    while (user_data->m_running) 
+    {
+        if (user_data->m_update_cb)
+            user_data->m_update_cb();
+    }
+
+    return 0;
+}
+
 void CWindow::Start()
 {
-    SDL_Event event;
+	bgfx::renderFrame();
+
+    bx::Thread api_thread;
+    api_thread.init(RunApiThread, this);
 
     while(m_running)
     {
+        bgfx::renderFrame();
+
+        SDL_Event event;
         while (SDL_PollEvent(&event))
         {
             switch (event.type)
-        	{
+            {
             case SDL_QUIT:
                 m_running = false;
                 break;
@@ -78,8 +99,7 @@ void CWindow::Start()
                 break;
             }
         }
-
-        if (m_update_cb)
-            m_update_cb();
     }
+
+    api_thread.shutdown();
 }

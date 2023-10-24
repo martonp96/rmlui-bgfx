@@ -9,8 +9,10 @@
 
 //bgfx
 #include <bgfx/bgfx.h>
+#include <bgfx/platform.h>
 #include <bx/math.h>
 #include <bx/timer.h>
+#include <bx/thread.h>
 
 //eigen
 #include <Eigen/Eigen>
