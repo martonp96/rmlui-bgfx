@@ -16,3 +16,4 @@
 - [SDL2](https://wiki.libsdl.org/SDL2/FrontPage)
 - [null-rmlui](https://github.com/nullptr-sources/null-rmlui)
 - [ConveyorPlayground](https://github.com/ClxS/ConveyorPlayground)
+- [Minimal bgfx + SDL2](https://gist.github.com/zlash/abf8d4bc2efb795a02361e4820a2da10)
