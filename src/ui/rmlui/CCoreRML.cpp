@@ -1,6 +1,6 @@
 ﻿#include "CCoreRML.h"
 
-void ui::CCoreRML::create(SDL_Window* window, int width, int height)
+void ui::CCoreRML::Create(SDL_Window* window, int width, int height)
 {
 	m_render_interface = std::make_unique<CRenderInterface>(width, height);
 	m_system_interface = std::make_unique<CSystemInterface>(window);
@@ -18,22 +18,22 @@ void ui::CCoreRML::create(SDL_Window* window, int width, int height)
 	//Rml::Debugger::SetVisible(true);
 
 	Rml::LoadFontFace("arial.ttf", true);
-	auto doc = ctx_ptr->LoadDocument("main.rml");
+	auto doc = m_ctx->LoadDocument("main.rml");
 	doc->Show();
 }
 
-void ui::CCoreRML::resize(int width, int height)
+void ui::CCoreRML::Resize(int width, int height)
 {
 	m_ctx->SetDimensions(Rml::Vector2i(width, height));
 	m_render_interface->Resize(width, height);
 }
 
-void ui::CCoreRML::destroy()
+void ui::CCoreRML::Destroy()
 {
 	Rml::Shutdown();
 }
 
-void ui::CCoreRML::update()
+void ui::CCoreRML::Update()
 {
 	if (!m_ctx)
 		return;

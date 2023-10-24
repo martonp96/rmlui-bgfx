@@ -16,13 +16,12 @@ namespace ui
 		std::unique_ptr<CRenderInterface> m_render_interface;
 		std::unique_ptr<CSystemInterface> m_system_interface;
 
-
 	public:
-		void create(SDL_Window* window, int width, int height);
-		void resize(int width, int height);
-		void destroy();
-		void update();
+		void Create(SDL_Window* window, int width, int height);
+		void Resize(int width, int height);
+		void Destroy();
+		void Update();
 
-		rml_ctx_type& get_ctx() { return m_ctx; }
+		rml_ctx_type& GetContext() { return m_ctx; }
 	};
 }

@@ -17,29 +17,29 @@ int main()
     const auto height = size[1];
 
     bgfx_core.Create(window.GetWindowPtr(), width, height);
-    rml_core.create(window.GetWindowPtr(), width, height);
+    rml_core.Create(window.GetWindowPtr(), width, height);
     
     window.OnUpdate([&]() {
         bgfx_core.PreRender();
     	//bgfx_core.DebugRender();
-        rml_core.update();
+        rml_core.Update();
         bgfx_core.PostRender();
     });
 
     window.OnResize([&](Eigen::Vector2i& size) {
         bgfx_core.Resize(size[0], size[1]);
-        rml_core.resize(size[0], size[1]);
+        rml_core.Resize(size[0], size[1]);
     });
 
     window.OnKeyEvent([&](SDL_Event& ev) {
-        ui::CSystemInterface::OnEvent(rml_core.get_ctx().get(), ev);
+        ui::CSystemInterface::OnEvent(rml_core.GetContext().get(), ev);
     });
 
     window.Start();
 
     printf("shutting down\n");
 
-    rml_core.destroy();
+    rml_core.Destroy();
     window.Destroy();
     bgfx_core.Destroy();
 
