@@ -6,7 +6,7 @@ static unsigned char g_vertex_shader[] = {
 };
 
 static unsigned char g_fragment_shader[] = {
-	#include "textured_frag.bin.h"
+	#include "frag.bin.h"
 };
 
 ui::c_rml_render_interface::c_rml_render_interface(int width, int height) : m_width(width), m_height(height)

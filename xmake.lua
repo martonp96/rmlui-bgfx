@@ -10,8 +10,8 @@ add_requires("bgfx_custom", "rmlui_custom", "eigen", "stb", "libsdl")
 add_requires("libsdl", { configs = { wayland = true, x11 = false, with_x = false } })
 
 local shaders = {
-    { "vert.sc",           "vert.bin",          "common", "vertex",   "varying.def.sc" },
-    { "textured_frag.sc",  "textured_frag.bin", "common", "fragment", "" },
+    { "vert.sc", "vert.bin", "common", "vertex",   "varying.def.sc" },
+    { "frag.sc", "frag.bin", "common", "fragment", "" },
 }
 
 local shadersPath = "data/shaders/"
@@ -44,10 +44,7 @@ target("rmlui-bgfx")
                 cmd = cmd .. " --varyingdef " .. path.join(target:scriptdir(), shadersPath, shader[5])
             end
     
-            os.exec(cmd)
-    
-            --cmd = shadercPath .. cmd;
-    
+            os.exec(cmd)    
             print(cmd)
         end
     end)
