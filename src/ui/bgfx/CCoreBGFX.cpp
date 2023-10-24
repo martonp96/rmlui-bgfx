@@ -31,11 +31,18 @@ void ui::CCoreBGFX::Create(SDL_Window* window, int width, int height)
     printf("windows platform\n");
 #endif
 
+    init.platformData.context = nullptr;
+    init.platformData.backBuffer = nullptr;
+    init.platformData.backBufferDS = nullptr;
+    init.platformData.type = bgfx::NativeWindowHandleType::Default;
+
     if(!bgfx::init(init))
     {
         printf("Failed to init bgfx\n");
         return;
     }
+
+    printf("Bgfx inited\n");
 
     m_width = width;
     m_height = height;
