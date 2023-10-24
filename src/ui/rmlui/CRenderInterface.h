@@ -3,7 +3,7 @@
 
 namespace ui
 {
-	class c_rml_render_interface : public Rml::RenderInterface
+	class CRenderInterface : public Rml::RenderInterface
 	{
 	private:
         struct CompiledGeometry
@@ -40,10 +40,11 @@ namespace ui
 		uint32_t m_idx = 0;
 
 	public:
-		c_rml_render_interface(int width, int height);
+		CRenderInterface(int width, int height);
 
-		void setup_projection();
-        void resize(int width, int height);
+		void SetupProjection();
+        void Resize(int width, int height);
+		void Render(const Rml::Vector2f& translation, bgfx::VertexBufferHandle vertex_buffer, bgfx::IndexBufferHandle index_buffer, Rml::TextureHandle texture, uint64_t state);
 
 		void RenderGeometry(Rml::Vertex* vertices, int numVertices, int* indices, int numIndices, Rml::TextureHandle texture, const Rml::Vector2f& translation) override;
 
@@ -59,7 +60,5 @@ namespace ui
 		void SetScissorRegion(int x, int y, int width, int height) override;
 
 		void SetTransform(const Rml::Matrix4f* transform) override;
-
-		void render(const Rml::Vector2f& translation, bgfx::VertexBufferHandle vertex_buffer, bgfx::IndexBufferHandle index_buffer, Rml::TextureHandle texture, uint64_t state);
 	};
 }

@@ -1,8 +1,8 @@
-#include "c_window.h"
+#include "CWindow.h"
 
 using namespace window;
 
-void c_window::create(int x, int y, int width, int height)
+void CWindow::Create(int x, int y, int width, int height)
 {
     m_wnd_pos = { x, y };
     m_wnd_size = { width, height };
@@ -23,7 +23,7 @@ void c_window::create(int x, int y, int width, int height)
     //FreeConsole();
 }
 
-void c_window::destroy()
+void CWindow::Destroy()
 {
     m_running = false;
 
@@ -31,7 +31,7 @@ void c_window::destroy()
     SDL_Quit();
 }
 
-void c_window::start()
+void CWindow::Start()
 {
     SDL_Event event;
 
@@ -55,8 +55,8 @@ void c_window::start()
 
                     m_wnd_size[0] = ev.data1;
                     m_wnd_size[1] = ev.data2;
-                    if (wnd_resize_cb)
-                        wnd_resize_cb(m_wnd_size);
+                    if (m_wnd_resize_cb)
+                        m_wnd_resize_cb(m_wnd_size);
 
                     break;
 
@@ -67,18 +67,13 @@ void c_window::start()
                 break;
             }
             default:
-                key_event(event);
+                if (m_key_event_cb)
+                    m_key_event_cb(event);
                 break;
             }
         }
 
-        if (update_cb)
-            update_cb();
+        if (m_update_cb)
+            m_update_cb();
     }
-}
-
-void c_window::key_event(SDL_Event& ev)
-{
-    if (m_key_event_cb)
-        m_key_event_cb(ev);
 }

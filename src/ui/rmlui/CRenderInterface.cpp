@@ -1,4 +1,4 @@
-#include "c_rml_render_interface.h"
+#include "CRenderInterface.h"
 #include "rml_helpers.h"
 
 static unsigned char g_vertex_shader[] = {
@@ -9,7 +9,7 @@ static unsigned char g_fragment_shader[] = {
 	#include "frag.bin.h"
 };
 
-ui::c_rml_render_interface::c_rml_render_interface(int width, int height) : m_width(width), m_height(height)
+ui::CRenderInterface::CRenderInterface(int width, int height) : m_width(width), m_height(height)
 {
     m_render_view_id = 0;
 
@@ -43,24 +43,10 @@ ui::c_rml_render_interface::c_rml_render_interface(int width, int height) : m_wi
     //init and set transform data once
     bgfx::setUniform(m_transform_handle, Rml::Matrix4f::Identity().data());
 
-    setup_projection();
+    SetupProjection();
 }
 
-void ui::c_rml_render_interface::setup_projection()
-{
-    bx::mtxOrtho(m_projection.data(), 0.f, m_width, m_height, 0.f, -10000.f, 10000.f, 0.f, bgfx::getCaps()->homogeneousDepth);
-    bgfx::setUniform(m_projection_handle, m_projection.data());
-}
-
-void ui::c_rml_render_interface::resize(int width, int height)
-{
-    m_width = width;
-    m_height = height;
-
-    setup_projection();
-}
-
-Rml::CompiledGeometryHandle ui::c_rml_render_interface::CompileGeometry(Rml::Vertex* vertices, int numVertices,	int* indices, int numIndices, Rml::TextureHandle texture)
+Rml::CompiledGeometryHandle ui::CRenderInterface::CompileGeometry(Rml::Vertex* vertices, int numVertices,	int* indices, int numIndices, Rml::TextureHandle texture)
 {
     //printf("%s\n", __FUNCTION__);
 
@@ -84,7 +70,7 @@ Rml::CompiledGeometryHandle ui::c_rml_render_interface::CompileGeometry(Rml::Ver
     return handle;
 }
 
-void ui::c_rml_render_interface::RenderCompiledGeometry(Rml::CompiledGeometryHandle geometryHandle, const Rml::Vector2f& translation)
+void ui::CRenderInterface::RenderCompiledGeometry(Rml::CompiledGeometryHandle geometryHandle, const Rml::Vector2f& translation)
 {
     const auto geometryIter = m_compiled_geometry.find(geometryHandle);
     if (geometryIter == m_compiled_geometry.end())
@@ -92,7 +78,7 @@ void ui::c_rml_render_interface::RenderCompiledGeometry(Rml::CompiledGeometryHan
 
     const auto& geometry = *geometryIter;
 
-    render(
+    Render(
         translation, 
         geometry.second.m_vertex_buffer, 
         geometry.second.m_index_buffer,
@@ -101,7 +87,7 @@ void ui::c_rml_render_interface::RenderCompiledGeometry(Rml::CompiledGeometryHan
     );
 }
 
-void ui::c_rml_render_interface::ReleaseCompiledGeometry(Rml::CompiledGeometryHandle geometryHandle)
+void ui::CRenderInterface::ReleaseCompiledGeometry(Rml::CompiledGeometryHandle geometryHandle)
 {
     //printf("%s\n", __FUNCTION__);
     const auto geometryIter = m_compiled_geometry.find(geometryHandle);
@@ -114,7 +100,7 @@ void ui::c_rml_render_interface::ReleaseCompiledGeometry(Rml::CompiledGeometryHa
     m_compiled_geometry.erase(geometryIter);
 }
 
-void ui::c_rml_render_interface::RenderGeometry(Rml::Vertex* vertices, int numVertices, int* indices, int numIndices, Rml::TextureHandle texture, const Rml::Vector2f& translation)
+void ui::CRenderInterface::RenderGeometry(Rml::Vertex* vertices, int numVertices, int* indices, int numIndices, Rml::TextureHandle texture, const Rml::Vector2f& translation)
 {
     //printf("%s\n", __FUNCTION__);
     if (bgfx::getAvailTransientVertexBuffer(numVertices, m_rml_vertex_layout) != static_cast<uint32_t>(numVertices) ||
@@ -132,7 +118,7 @@ void ui::c_rml_render_interface::RenderGeometry(Rml::Vertex* vertices, int numVe
     std::memcpy(vb.data, vertices, m_rml_vertex_layout.getSize(numVertices));
     std::memcpy(ib.data, indices, numIndices * sizeof(int));
 
-    render(
+    Render(
         translation, 
         vb.handle, 
         ib.handle,
@@ -141,7 +127,7 @@ void ui::c_rml_render_interface::RenderGeometry(Rml::Vertex* vertices, int numVe
     );
 }
 
-bool ui::c_rml_render_interface::LoadTexture(Rml::TextureHandle& textureHandle, Rml::Vector2i& textureDimensions, const Rml::String& source)
+bool ui::CRenderInterface::LoadTexture(Rml::TextureHandle& textureHandle, Rml::Vector2i& textureDimensions, const Rml::String& source)
 {
     //printf("%s\n", __FUNCTION__);
 
@@ -165,7 +151,7 @@ bool ui::c_rml_render_interface::LoadTexture(Rml::TextureHandle& textureHandle, 
     return textureHandle;
 }
 
-bool ui::c_rml_render_interface::GenerateTexture(Rml::TextureHandle& textureHandle, const uint8_t* source, const Rml::Vector2i& sourceDimensions)
+bool ui::CRenderInterface::GenerateTexture(Rml::TextureHandle& textureHandle, const uint8_t* source, const Rml::Vector2i& sourceDimensions)
 {
     //printf("%s\n", __FUNCTION__);
     constexpr uint32_t c_stride = 4;
@@ -188,7 +174,7 @@ bool ui::c_rml_render_interface::GenerateTexture(Rml::TextureHandle& textureHand
     return true;
 }
 
-void ui::c_rml_render_interface::ReleaseTexture(Rml::TextureHandle texture)
+void ui::CRenderInterface::ReleaseTexture(Rml::TextureHandle texture)
 {
     //printf("%s\n", __FUNCTION__);
     const auto textureIter = m_textures.find(texture);
@@ -200,23 +186,37 @@ void ui::c_rml_render_interface::ReleaseTexture(Rml::TextureHandle texture)
     m_textures.erase(textureIter);
 }
 
-void ui::c_rml_render_interface::EnableScissorRegion(bool enable)
+void ui::CRenderInterface::EnableScissorRegion(bool enable)
 {
 	m_enable_scissor_region = enable;
 }
 
-void ui::c_rml_render_interface::SetScissorRegion(int x, int y, int width, int height)
+void ui::CRenderInterface::SetScissorRegion(int x, int y, int width, int height)
 {
     //printf("%s %d %d %d %d\n", __FUNCTION__, x, y, width, height);
     m_scissor_region = { x, y, width, height };
 }
 
-void ui::c_rml_render_interface::SetTransform(const Rml::Matrix4f* transform)
+void ui::CRenderInterface::SetTransform(const Rml::Matrix4f* transform)
 {
 	bgfx::setUniform(m_transform_handle, transform ? transform->data() : Rml::Matrix4f::Identity().data());
 }
 
-void ui::c_rml_render_interface::render(const Rml::Vector2f& translation, bgfx::VertexBufferHandle vertex_buffer, bgfx::IndexBufferHandle index_buffer, Rml::TextureHandle texture, uint64_t state)
+void ui::CRenderInterface::SetupProjection()
+{
+    bx::mtxOrtho(m_projection.data(), 0.f, m_width, m_height, 0.f, -10000.f, 10000.f, 0.f, bgfx::getCaps()->homogeneousDepth);
+    bgfx::setUniform(m_projection_handle, m_projection.data());
+}
+
+void ui::CRenderInterface::Resize(int width, int height)
+{
+    m_width = width;
+    m_height = height;
+
+    SetupProjection();
+}
+
+void ui::CRenderInterface::Render(const Rml::Vector2f& translation, bgfx::VertexBufferHandle vertex_buffer, bgfx::IndexBufferHandle index_buffer, Rml::TextureHandle texture, uint64_t state)
 {
     bgfx::setVertexBuffer(0, vertex_buffer);
     bgfx::setIndexBuffer(index_buffer);

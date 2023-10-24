@@ -1,20 +1,20 @@
 #pragma once
 #include "main.h"
 
-#include "c_rml_render_interface.h"
-#include "c_rml_system_interface.h"
+#include "CRenderInterface.h"
+#include "CSystemInterface.h"
 
 
 namespace ui
 {
-	class c_rml_core
+	class CCoreRML
 	{
 	private:
 		typedef std::unique_ptr<Rml::Context, std::function<void(Rml::Context*)>> rml_ctx_type;
-		rml_ctx_type ctx;
+		rml_ctx_type m_ctx;
 		
-		std::unique_ptr<c_rml_render_interface> render_interface;
-		std::unique_ptr<c_rml_system_interface> system_interface;
+		std::unique_ptr<CRenderInterface> m_render_interface;
+		std::unique_ptr<CSystemInterface> m_system_interface;
 
 
 	public:
@@ -23,6 +23,6 @@ namespace ui
 		void destroy();
 		void update();
 
-		rml_ctx_type& get_ctx() { return ctx; }
+		rml_ctx_type& get_ctx() { return m_ctx; }
 	};
 }

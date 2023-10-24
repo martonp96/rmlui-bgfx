@@ -3,7 +3,7 @@
 
 namespace ui
 {
-	class c_rml_system_interface : public Rml::SystemInterface
+	class CSystemInterface : public Rml::SystemInterface
 	{
 	private:
 		int64_t m_start_time;
@@ -19,8 +19,8 @@ namespace ui
 		SDL_Cursor* m_cursor_unavailable = nullptr;
 
 	public:
-		c_rml_system_interface(SDL_Window* window);
-		~c_rml_system_interface();
+		CSystemInterface(SDL_Window* window);
+		~CSystemInterface();
 
 		double GetElapsedTime() override;
 		void SetMouseCursor(const Rml::String& cursor_name) override;
@@ -29,6 +29,6 @@ namespace ui
 
 		bool LogMessage(Rml::Log::Type type, const Rml::String& message) override;
 
-		static bool wnd_proc(Rml::Context* context, SDL_Event& ev);
+		static bool OnEvent(Rml::Context* context, SDL_Event& ev);
 	};
 }

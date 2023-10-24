@@ -1,4 +1,4 @@
-﻿#include "c_rml_core.h"
+﻿#include "CCoreRML.h"
 
 static const Rml::String sandbox_default_rcss = R"(
 body { top: 0; left: 0; right: 0; bottom: 0;}
@@ -373,19 +373,19 @@ public:
 };
 
 
-void ui::c_rml_core::create(SDL_Window* window, int width, int height)
+void ui::CCoreRML::create(SDL_Window* window, int width, int height)
 {
-	render_interface = std::make_unique<c_rml_render_interface>(width, height);
-	system_interface = std::make_unique<c_rml_system_interface>(window);
+	m_render_interface = std::make_unique<CRenderInterface>(width, height);
+	m_system_interface = std::make_unique<CSystemInterface>(window);
 
-	Rml::SetRenderInterface(render_interface.get());
-	Rml::SetSystemInterface(system_interface.get());
+	Rml::SetRenderInterface(m_render_interface.get());
+	Rml::SetSystemInterface(m_system_interface.get());
 
 	if (!Rml::Initialise())
 		printf("failed to initialize rmlui\n");
 
 	auto ctx_ptr = Rml::CreateContext("main", Rml::Vector2i(width, height));
-	ctx = rml_ctx_type(ctx_ptr, [](Rml::Context* ctx) { Rml::RemoveContext("main"); });
+	m_ctx = rml_ctx_type(ctx_ptr, [](Rml::Context* ctx) { Rml::RemoveContext("main"); });
 
 	Rml::Debugger::Initialise(ctx_ptr);
 	//Rml::Debugger::SetVisible(true);
@@ -406,25 +406,25 @@ void ui::c_rml_core::create(SDL_Window* window, int width, int height)
 	demo_window->GetDocument()->AddEventListener(Rml::EventId::Animationend, demo_window.get());
 }
 
-void ui::c_rml_core::resize(int width, int height)
+void ui::CCoreRML::resize(int width, int height)
 {
-	ctx->SetDimensions(Rml::Vector2i(width, height));
-	render_interface->resize(width, height);
+	m_ctx->SetDimensions(Rml::Vector2i(width, height));
+	m_render_interface->Resize(width, height);
 }
 
-void ui::c_rml_core::destroy()
+void ui::CCoreRML::destroy()
 {
 	demo_window.reset();
 	Rml::Shutdown();
 }
 
-void ui::c_rml_core::update()
+void ui::CCoreRML::update()
 {
-	if (!ctx)
+	if (!m_ctx)
 		return;
 
 	demo_window->Update();
 
-	ctx->Update();
-	ctx->Render();
+	m_ctx->Update();
+	m_ctx->Render();
 }

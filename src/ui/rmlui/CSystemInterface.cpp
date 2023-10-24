@@ -1,7 +1,7 @@
-#include "c_rml_system_interface.h"
+#include "CSystemInterface.h"
 #include "rml_helpers.h"
 
-ui::c_rml_system_interface::c_rml_system_interface(SDL_Window* window) : m_window(window)
+ui::CSystemInterface::CSystemInterface(SDL_Window* window) : m_window(window)
 {
 	m_cursor_default = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW);
 	m_cursor_move = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_SIZEALL);
@@ -14,7 +14,7 @@ ui::c_rml_system_interface::c_rml_system_interface(SDL_Window* window) : m_windo
 	m_start_time = bx::getHPCounter();
 }
 
-ui::c_rml_system_interface::~c_rml_system_interface()
+ui::CSystemInterface::~CSystemInterface()
 {
 	SDL_FreeCursor(m_cursor_default);
 	SDL_FreeCursor(m_cursor_move);
@@ -25,12 +25,12 @@ ui::c_rml_system_interface::~c_rml_system_interface()
 	SDL_FreeCursor(m_cursor_unavailable);
 }
 
-double ui::c_rml_system_interface::GetElapsedTime()
+double ui::CSystemInterface::GetElapsedTime()
 {
 	return (bx::getHPCounter() - m_start_time) / (double)bx::getHPFrequency();
 }
 
-void ui::c_rml_system_interface::SetMouseCursor(const Rml::String& cursor_name)
+void ui::CSystemInterface::SetMouseCursor(const Rml::String& cursor_name)
 {
 	SDL_Cursor* cursor = nullptr;
 
@@ -55,19 +55,19 @@ void ui::c_rml_system_interface::SetMouseCursor(const Rml::String& cursor_name)
 		SDL_SetCursor(cursor);
 }
 
-void ui::c_rml_system_interface::SetClipboardText(const Rml::String& text_utf8)
+void ui::CSystemInterface::SetClipboardText(const Rml::String& text_utf8)
 {
 	SDL_SetClipboardText(text_utf8.c_str());
 }
 
-void ui::c_rml_system_interface::GetClipboardText(Rml::String& text)
+void ui::CSystemInterface::GetClipboardText(Rml::String& text)
 {
 	char* raw_text = SDL_GetClipboardText();
 	text = Rml::String(raw_text);
 	SDL_free(raw_text);
 }
 
-bool ui::c_rml_system_interface::LogMessage(Rml::Log::Type type, const Rml::String& message)
+bool ui::CSystemInterface::LogMessage(Rml::Log::Type type, const Rml::String& message)
 {
     std::stringstream str;
     switch (type)
@@ -100,7 +100,7 @@ bool ui::c_rml_system_interface::LogMessage(Rml::Log::Type type, const Rml::Stri
 
 using namespace ui::helpers;
 
-bool ui::c_rml_system_interface::wnd_proc(Rml::Context* context, SDL_Event& ev)
+bool ui::CSystemInterface::OnEvent(Rml::Context* context, SDL_Event& ev)
 {
 	if (!context)
 		return true;

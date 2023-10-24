@@ -1,6 +1,6 @@
-#include "c_bgfx_core.h"
+#include "CCoreBGFX.h"
 
-void ui::c_bgfx_core::create(SDL_Window* window, int width, int height)
+void ui::CCoreBGFX::Create(SDL_Window* window, int width, int height)
 {
     SDL_SysWMinfo wmi;
     SDL_VERSION(&wmi.version);
@@ -46,12 +46,12 @@ void ui::c_bgfx_core::create(SDL_Window* window, int width, int height)
     bgfx::setViewScissor(0, 0, 0, 0, 0);
 }
 
-void ui::c_bgfx_core::destroy()
+void ui::CCoreBGFX::Destroy()
 {
     bgfx::shutdown();
 }
 
-void ui::c_bgfx_core::resize(int width, int height)
+void ui::CCoreBGFX::Resize(int width, int height)
 {
     m_width = width;
     m_height = height;
@@ -60,17 +60,17 @@ void ui::c_bgfx_core::resize(int width, int height)
     bgfx::setViewRect(0, 0, 0, width, height);
 }
 
-void ui::c_bgfx_core::pre_render()
+void ui::CCoreBGFX::PreRender()
 {
     bgfx::touch(0);
 }
 
-void ui::c_bgfx_core::post_render()
+void ui::CCoreBGFX::PostRender()
 {
     bgfx::frame();
 }
 
-void ui::c_bgfx_core::debug_render()
+void ui::CCoreBGFX::DebugRender()
 {
     // Use debug font to print information about this example.
     bgfx::dbgTextClear();

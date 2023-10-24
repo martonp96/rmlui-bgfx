@@ -1,47 +1,47 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "main.h"
-#include "window/c_window.h"
-#include "ui/rmlui/c_rml_core.h"
-#include "ui/bgfx/c_bgfx_core.h"
+#include "window/CWindow.h"
+#include "ui/rmlui/CCoreRML.h"
+#include "ui/bgfx/CCoreBGFX.h"
 
 int main()
 {
-    window::c_window window;
-    ui::c_rml_core rml_core;
-    ui::c_bgfx_core bgfx_core;
+    window::CWindow window;
+    ui::CCoreRML rml_core;
+    ui::CCoreBGFX bgfx_core;
 
-    window.create(200, 200, 1800, 890);
+    window.Create(200, 200, 1800, 890);
 
-    const auto size = window.get_size();
+    const auto size = window.GetSize();
     const auto width = size[0];
     const auto height = size[1];
 
-    bgfx_core.create(window.get_wnd(), width, height);
-    rml_core.create(window.get_wnd(), width, height);
+    bgfx_core.Create(window.GetWindowPtr(), width, height);
+    rml_core.create(window.GetWindowPtr(), width, height);
     
-    window.on_update([&]() {
-        bgfx_core.pre_render();
-    	//bgfx_core.debug_render();
+    window.OnUpdate([&]() {
+        bgfx_core.PreRender();
+    	//bgfx_core.DebugRender();
         rml_core.update();
-        bgfx_core.post_render();
+        bgfx_core.PostRender();
     });
 
-    window.on_resize([&](Eigen::Vector2i& size) {
-        bgfx_core.resize(size[0], size[1]);
+    window.OnResize([&](Eigen::Vector2i& size) {
+        bgfx_core.Resize(size[0], size[1]);
         rml_core.resize(size[0], size[1]);
     });
 
-    window.on_key_event([&](SDL_Event& ev) {
-        ui::c_rml_system_interface::wnd_proc(rml_core.get_ctx().get(), ev);
+    window.OnKeyEvent([&](SDL_Event& ev) {
+        ui::CSystemInterface::OnEvent(rml_core.get_ctx().get(), ev);
     });
 
-    window.start();
+    window.Start();
 
     printf("shutting down\n");
 
     rml_core.destroy();
-    window.destroy();
-    bgfx_core.destroy();
+    window.Destroy();
+    bgfx_core.Destroy();
 
     return 0;
 }
