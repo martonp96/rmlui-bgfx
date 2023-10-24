@@ -15,7 +15,12 @@ local shaders = {
 }
 
 local shadersPath = "data/shaders/"
-local shaderType = is_host("windows") and "s_5_0" or "spirv"
+local shaderType = "s_5_0"
+if is_host("macosx") then 
+    shaderType = "metal"
+elseif is_host("linux") then
+    shaderType = "spirv"
+end
 
 target("rmlui-bgfx")
     set_arch(os.arch())
