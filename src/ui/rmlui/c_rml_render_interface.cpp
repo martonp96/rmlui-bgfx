@@ -24,10 +24,10 @@ ui::c_rml_render_interface::c_rml_render_interface(int width, int height) : m_wi
     auto vertMemory = bgfx::copy(g_vertex_shader, sizeof(g_vertex_shader));
     bgfx::ShaderHandle vertex_shader = bgfx::createShader(vertMemory);
 
-    auto texturedMemory = bgfx::copy(g_fragment_shader, sizeof(g_fragment_shader));
-    bgfx::ShaderHandle textured_frag = bgfx::createShader(texturedMemory);
+    auto fragMemory = bgfx::copy(g_fragment_shader, sizeof(g_fragment_shader));
+    bgfx::ShaderHandle fragment_shader = bgfx::createShader(fragMemory);
 
-    m_textured_program = bgfx::createProgram(vertex_shader, textured_frag, false);
+    m_textured_program = bgfx::createProgram(vertex_shader, fragment_shader, false);
 
     //create a blank white texture that will be used when rmlui can't find the textures
     auto mem = bgfx::alloc(4);
