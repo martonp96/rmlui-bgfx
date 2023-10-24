@@ -15,9 +15,11 @@ void CWindow::Create(int x, int y, int width, int height)
     m_window = SDL_CreateWindow("app_window", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, SDL_WINDOW_RESIZABLE);
     if (!m_window)
     {
-        Rml::Log::Message(Rml::Log::LT_ERROR, "SDL error on create window: %s\n", SDL_GetError());
+        printf("SDL error on create window: %s\n", SDL_GetError());
         return;
     }
+
+    SDL_ShowWindow(m_window);
 
     m_running = true;
     //FreeConsole();
