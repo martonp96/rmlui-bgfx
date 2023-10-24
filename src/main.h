@@ -1,8 +1,6 @@
 #pragma once
 
-//windows & std
-#define NOMINMAX
-#include <Windows.h>
+//std
 #include <functional>
 #include <optional>
 #include <chrono>

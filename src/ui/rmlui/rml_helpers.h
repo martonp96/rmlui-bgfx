@@ -1,24 +1,6 @@
 #pragma once
-#include <Windows.h>
-
 namespace ui::helpers
 {
-	inline Rml::String ConvertToUTF8(const std::wstring& wstr)
-	{
-		const int count = WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), (int)wstr.length(), NULL, 0, NULL, NULL);
-		Rml::String str(count, 0);
-		WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), -1, &str[0], count, NULL, NULL);
-		return str;
-	}
-
-	inline std::wstring ConvertToUTF16(const Rml::String& str)
-	{
-		const int count = MultiByteToWideChar(CP_UTF8, 0, str.c_str(), (int)str.length(), NULL, 0);
-		std::wstring wstr(count, 0);
-		MultiByteToWideChar(CP_UTF8, 0, str.c_str(), (int)str.length(), &wstr[0], count);
-		return wstr;
-	}
-
 	inline Rml::Input::KeyIdentifier ConvertKey(int sdlkey)
 	{
 		// clang-format off
