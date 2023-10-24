@@ -18,18 +18,22 @@ void ui::CCoreBGFX::Create(SDL_Window* window, int width, int height)
 #if BX_PLATFORM_LINUX || BX_PLATFORM_BSD
     init.platformData.ndt = wmi.info.x11.display;
     init.platformData.nwh = (void*)(uintptr_t)wmi.info.x11.window;
+    printf("Linux platform\n");
 #elif BX_PLATFORM_OSX
     init.platformData.ndt = nullptr;
     init.platformData.nwh = wmi.info.cocoa.window;
+    printf("OSX platform\n");
 #elif BX_PLATFORM_WINDOWS
     init.platformData.ndt = nullptr;
     init.platformData.nwh = wmi.info.win.window;
-#elif BX_PLATFORM_STEAMLINK
-    init.platformData.ndt = wmi.info.vivante.display;
-    init.platformData.nwh = wmi.info.vivante.window;
+    printf("windows platform\n");
 #endif
 
-    bgfx::init(init);
+    if(!bgfx::init(init))
+    {
+        printf("Failed to init bgfx\n");
+        return;
+    }
 
     m_width = width;
     m_height = height;
