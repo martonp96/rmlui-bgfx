@@ -48,8 +48,6 @@ ui::CRenderInterface::CRenderInterface(int width, int height) : m_width(width), 
 
 Rml::CompiledGeometryHandle ui::CRenderInterface::CompileGeometry(Rml::Vertex* vertices, int numVertices,	int* indices, int numIndices, Rml::TextureHandle texture)
 {
-    //printf("%s\n", __FUNCTION__);
-
     const bgfx::Memory* vertexMemory = bgfx::alloc(m_rml_vertex_layout.getSize(numVertices));
     const bgfx::Memory* indexMemory = bgfx::alloc(numIndices * sizeof(int));
 
@@ -89,7 +87,6 @@ void ui::CRenderInterface::RenderCompiledGeometry(Rml::CompiledGeometryHandle ge
 
 void ui::CRenderInterface::ReleaseCompiledGeometry(Rml::CompiledGeometryHandle geometryHandle)
 {
-    //printf("%s\n", __FUNCTION__);
     const auto geometryIter = m_compiled_geometry.find(geometryHandle);
     if (geometryIter == m_compiled_geometry.end())
         return;
@@ -102,7 +99,6 @@ void ui::CRenderInterface::ReleaseCompiledGeometry(Rml::CompiledGeometryHandle g
 
 void ui::CRenderInterface::RenderGeometry(Rml::Vertex* vertices, int numVertices, int* indices, int numIndices, Rml::TextureHandle texture, const Rml::Vector2f& translation)
 {
-    //printf("%s\n", __FUNCTION__);
     if (bgfx::getAvailTransientVertexBuffer(numVertices, m_rml_vertex_layout) != static_cast<uint32_t>(numVertices) ||
         bgfx::getAvailTransientIndexBuffer(numIndices, true) != static_cast<uint32_t>(numIndices))
     {
@@ -129,8 +125,6 @@ void ui::CRenderInterface::RenderGeometry(Rml::Vertex* vertices, int numVertices
 
 bool ui::CRenderInterface::LoadTexture(Rml::TextureHandle& textureHandle, Rml::Vector2i& textureDimensions, const Rml::String& source)
 {
-    //printf("%s\n", __FUNCTION__);
-
 	const auto file_interface = Rml::GetFileInterface();
     const auto file_handle = file_interface->Open(source);
 
@@ -153,7 +147,6 @@ bool ui::CRenderInterface::LoadTexture(Rml::TextureHandle& textureHandle, Rml::V
 
 bool ui::CRenderInterface::GenerateTexture(Rml::TextureHandle& textureHandle, const uint8_t* source, const Rml::Vector2i& sourceDimensions)
 {
-    //printf("%s\n", __FUNCTION__);
     constexpr uint32_t c_stride = 4;
     const uint32_t size = c_stride * sourceDimensions.x * sourceDimensions.y;
 
@@ -176,7 +169,6 @@ bool ui::CRenderInterface::GenerateTexture(Rml::TextureHandle& textureHandle, co
 
 void ui::CRenderInterface::ReleaseTexture(Rml::TextureHandle texture)
 {
-    //printf("%s\n", __FUNCTION__);
     const auto textureIter = m_textures.find(texture);
     if (textureIter == m_textures.end())
         return;
@@ -193,7 +185,6 @@ void ui::CRenderInterface::EnableScissorRegion(bool enable)
 
 void ui::CRenderInterface::SetScissorRegion(int x, int y, int width, int height)
 {
-    //printf("%s %d %d %d %d\n", __FUNCTION__, x, y, width, height);
     m_scissor_region = { x, y, width, height };
 }
 
