@@ -35,11 +35,11 @@ int main()
 
     window.OnResize([&](Eigen::Vector2i& size) {
         bgfx_core.Resize(size[0], size[1]);
-		rml_core.Resize(size[0], size[1]);
+        rml_core.Resize(size[0], size[1]);
     });
 
     window.OnEvent([&](window::CEvent* ev) {
-		ui::CSystemInterface::OnEvent(rml_core.GetContext().get(), ev);
+        ui::CSystemInterface::OnEvent(rml_core.GetContext().get(), ev);
     });
 
     window.Start();

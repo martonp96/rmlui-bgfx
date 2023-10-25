@@ -45,7 +45,7 @@ int32_t CWindow::RunApiThread(bx::Thread* self, void* userData)
 {
     const auto user_data = (CWindow*)userData;
     if(user_data->m_init_cb)
-		user_data->m_init_cb();
+        user_data->m_init_cb();
 
     while (user_data->m_running) 
     {
@@ -68,12 +68,12 @@ int32_t CWindow::RunApiThread(bx::Thread* self, void* userData)
             default:
                 if (user_data->m_event_cb)
                     user_data->m_event_cb(ev);
-	            break;
-	        }
-	        delete ev;
+                break;
+            }
+            delete ev;
         }
 
-    	if (user_data->m_render_cb)
+        if (user_data->m_render_cb)
             user_data->m_render_cb();
     }
 
@@ -82,14 +82,14 @@ int32_t CWindow::RunApiThread(bx::Thread* self, void* userData)
 
 void CWindow::Start()
 {
-	bgfx::renderFrame();
+    bgfx::renderFrame();
 
     bx::Thread api_thread;
     api_thread.init(RunApiThread, this);
 
     while(m_running)
     {
-    	SDL_Event event;
+        SDL_Event event;
         while (SDL_PollEvent(&event) && m_running)
         {
             switch (event.type)
@@ -117,7 +117,7 @@ void CWindow::Start()
             }
             case SDL_MOUSEMOTION:
                 g_api_thread_events.push(new CEventMouseMotion(event.motion.x, event.motion.y, SDL_GetModState()));
-            	break;
+                break;
             case SDL_MOUSEBUTTONDOWN:
                 g_api_thread_events.push(new CEventMouseButton(true, event.button.button, SDL_GetModState()));
                 SDL_CaptureMouse(SDL_TRUE);
@@ -134,10 +134,10 @@ void CWindow::Start()
                 break;
             case SDL_KEYUP:
                 g_api_thread_events.push(new CEventKey(false, event.key.keysym.sym, SDL_GetModState()));
-            	break;
+                break;
             case SDL_TEXTINPUT:
                 g_api_thread_events.push(new CEventTextInput(event.text.text));
-            	break;
+                break;
             }
         }
 
@@ -146,7 +146,7 @@ void CWindow::Start()
         if (m_update_cb)
             m_update_cb();
 
-		bgfx::renderFrame();
+        bgfx::renderFrame();
     }
 
     while (bgfx::RenderFrame::NoContext != bgfx::renderFrame()) {}

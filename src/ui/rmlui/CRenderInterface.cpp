@@ -2,11 +2,11 @@
 #include "rml_helpers.h"
 
 static unsigned char g_vertex_shader[] = {
-	#include "vert.bin.h"
+    #include "vert.bin.h"
 };
 
 static unsigned char g_fragment_shader[] = {
-	#include "frag.bin.h"
+    #include "frag.bin.h"
 };
 
 ui::CRenderInterface::CRenderInterface(int width, int height) : m_width(width), m_height(height)
@@ -46,7 +46,7 @@ ui::CRenderInterface::CRenderInterface(int width, int height) : m_width(width), 
     SetupProjection();
 }
 
-Rml::CompiledGeometryHandle ui::CRenderInterface::CompileGeometry(Rml::Vertex* vertices, int numVertices,	int* indices, int numIndices, Rml::TextureHandle texture)
+Rml::CompiledGeometryHandle ui::CRenderInterface::CompileGeometry(Rml::Vertex* vertices, int numVertices,    int* indices, int numIndices, Rml::TextureHandle texture)
 {
     const bgfx::Memory* vertexMemory = bgfx::alloc(m_rml_vertex_layout.getSize(numVertices));
     const bgfx::Memory* indexMemory = bgfx::alloc(numIndices * sizeof(int));
@@ -125,7 +125,7 @@ void ui::CRenderInterface::RenderGeometry(Rml::Vertex* vertices, int numVertices
 
 bool ui::CRenderInterface::LoadTexture(Rml::TextureHandle& textureHandle, Rml::Vector2i& textureDimensions, const Rml::String& source)
 {
-	const auto file_interface = Rml::GetFileInterface();
+    const auto file_interface = Rml::GetFileInterface();
     const auto file_handle = file_interface->Open(source);
 
     if (!file_handle)
@@ -173,14 +173,14 @@ void ui::CRenderInterface::ReleaseTexture(Rml::TextureHandle texture)
     if (textureIter == m_textures.end())
         return;
 
-	bgfx::destroy(textureIter->second);
+    bgfx::destroy(textureIter->second);
 
     m_textures.erase(textureIter);
 }
 
 void ui::CRenderInterface::EnableScissorRegion(bool enable)
 {
-	m_enable_scissor_region = enable;
+    m_enable_scissor_region = enable;
 }
 
 void ui::CRenderInterface::SetScissorRegion(int x, int y, int width, int height)
@@ -190,7 +190,7 @@ void ui::CRenderInterface::SetScissorRegion(int x, int y, int width, int height)
 
 void ui::CRenderInterface::SetTransform(const Rml::Matrix4f* transform)
 {
-	bgfx::setUniform(m_transform_handle, transform ? transform->data() : Rml::Matrix4f::Identity().data());
+    bgfx::setUniform(m_transform_handle, transform ? transform->data() : Rml::Matrix4f::Identity().data());
 }
 
 void ui::CRenderInterface::SetupProjection()
