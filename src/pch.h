@@ -38,5 +38,5 @@
 
 namespace window
 {
-	class CEvent;
+    class CEvent;
 }
