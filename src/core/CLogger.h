@@ -28,7 +28,10 @@ namespace core
             logger->set_pattern("[%H:%M:%S] [%^%l%$] %v");
             spdlog::set_default_logger(logger);
             spdlog::flush_every(std::chrono::seconds(1));
+
+            #ifdef _WIN32
             SetConsoleOutputCP(65001);
+            #endif
         }
 
         ~CLogger()
