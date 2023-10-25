@@ -76,28 +76,21 @@ bool ui::CSystemInterface::LogMessage(Rml::Log::Type type, const Rml::String& me
     std::stringstream str;
     switch (type)
     {
-    case Rml::Log::Type::LT_ERROR:
-        str << "[ERROR]";
-        break;
-    case Rml::Log::Type::LT_ASSERT:
-        str << "[ASSERT]";
-        break;
-    case Rml::Log::Type::LT_WARNING:
-        str << "[WARNING]";
-        break;
-    case Rml::Log::Type::LT_INFO:
-        str << "[INFO]";
-        break;
-    case Rml::Log::Type::LT_DEBUG:
-        str << "[DEBUG]";
-        break;
-    default:
-        str << "[DEFAULT]";
+	    case Rml::Log::Type::LT_ERROR:
+    		SPDLOG_ERROR("{}", message.c_str());
+	        break;
+	    case Rml::Log::Type::LT_DEBUG:
+	    case Rml::Log::Type::LT_ASSERT:
+    		SPDLOG_DEBUG("{}", message.c_str());
+	        break;
+	    case Rml::Log::Type::LT_WARNING:
+    		SPDLOG_WARN("{}", message.c_str());
+	        break;
+	    case Rml::Log::Type::LT_INFO:
+	    default:
+    		SPDLOG_INFO("{}", message.c_str());
+	        break;
     }
-
-    str << " " << message.c_str();
-
-    printf("%s\n", str.str().c_str());
 
     return true;
 }

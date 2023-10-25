@@ -11,10 +11,10 @@ void CWindow::Create(int x, int y, int width, int height)
     m_wnd_pos = { x, y };
     m_wnd_size = { width, height };
 
-    auto rc = SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS | SDL_INIT_TIMER);
+    const auto rc = SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS | SDL_INIT_TIMER);
     if (rc != 0)
     {
-        printf("SDL error on init: %d %s\n", rc, SDL_GetError());
+        SPDLOG_ERROR("SDL error on init: {} {}", rc, SDL_GetError());
         return;
     }
 
@@ -23,7 +23,7 @@ void CWindow::Create(int x, int y, int width, int height)
     m_window = SDL_CreateWindow("app_window", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, SDL_WINDOW_RESIZABLE);
     if (!m_window)
     {
-        printf("SDL error on create window: %s\n", SDL_GetError());
+        SPDLOG_ERROR("SDL error on create window: {}", SDL_GetError());
         return;
     }
 

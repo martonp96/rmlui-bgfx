@@ -36,7 +36,16 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_syswm.h>
 
+//spdlog
+#include <spdlog/spdlog.h>
+#include "core/CLogger.h"
+
 namespace window
 {
     class CEvent;
+}
+
+namespace core
+{
+    class CLogger;
 }

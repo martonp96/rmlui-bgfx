@@ -8,6 +8,7 @@ set_symbols("debug")
 
 add_requires("bgfx_custom", "rmlui_custom", "eigen", "stb", "libsdl")
 add_requires("libsdl", { configs = { wayland = true, x11 = false, with_x = false } })
+add_requires("spdlog")
 
 local shaders = {
     { "vert.sc", "vert.bin", "common", "vertex",   "varying.def.sc" },
@@ -34,7 +35,7 @@ target("rmlui-bgfx")
     add_files("src/**.cpp", shadersPath .. "*.bin")
     add_headerfiles("src/**.h", "include/**.h")
     add_includedirs("src/", "include/", { public = true })
-    add_packages("bgfx_custom", "rmlui_custom", "eigen", "stb", "libsdl")
+    add_packages("bgfx_custom", "rmlui_custom", "eigen", "stb", "libsdl", "spdlog")
     add_rules("utils.bin2c")
     after_load(function (target)
         local shadercPath = path.join(target:pkg("bgfx_custom"):installdir(), "bin/shadercRelease" .. (is_host("windows") and ".exe" or ""))
@@ -60,4 +61,12 @@ target("rmlui-bgfx")
         os.cp(path.join(target:scriptdir(), "data/rml/*"), path.join(target:scriptdir(), target:targetdir()))
     end)
 
-add_rules("plugin.vsxmake.autoupdate")
+    if is_mode("debug") then
+        add_defines("DEBUG")
+        add_defines("SPDLOG_ACTIVE_LEVEL=0") -- Trace
+    else
+        add_defines("NDEBUG")
+        add_defines("SPDLOG_ACTIVE_LEVEL=2") -- Info
+    end
+
+    add_rules("plugin.vsxmake.autoupdate")

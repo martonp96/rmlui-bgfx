@@ -18,17 +18,17 @@ void ui::CCoreBGFX::Create(SDL_Window* window, int width, int height)
     init.type = bgfx::RendererType::Vulkan;
     init.platformData.ndt = wmi.info.x11.display;
     init.platformData.nwh = (void*)(uintptr_t)wmi.info.x11.window;
-    printf("Linux platform\n");
+    SPDLOG_DEBUG("Using Linux platform");
 #elif BX_PLATFORM_OSX
     init.type = bgfx::RendererType::Metal;
     init.platformData.ndt = nullptr;
     init.platformData.nwh = wmi.info.cocoa.window;
-    printf("OSX platform\n");
+    SPDLOG_DEBUG("Using MacOS platform");
 #elif BX_PLATFORM_WINDOWS
     init.type = bgfx::RendererType::Direct3D11;
     init.platformData.ndt = nullptr;
     init.platformData.nwh = wmi.info.win.window;
-    printf("windows platform\n");
+    SPDLOG_DEBUG("Using Windows platform");
 #endif
 
     init.platformData.context = nullptr;
@@ -38,11 +38,11 @@ void ui::CCoreBGFX::Create(SDL_Window* window, int width, int height)
 
     if(!bgfx::init(init))
     {
-        printf("Failed to init bgfx\n");
+        SPDLOG_ERROR("Failed to init bgfx");
         return;
     }
 
-    printf("Bgfx inited\n");
+    SPDLOG_DEBUG("bgfx inited");
 
     m_width = width;
     m_height = height;

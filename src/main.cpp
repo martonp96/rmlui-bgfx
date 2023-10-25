@@ -9,6 +9,7 @@ int main()
     window::CWindow window;
     ui::CCoreRML rml_core;
     ui::CCoreBGFX bgfx_core;
+    core::CLogger logger;
 
     window.Create(200, 200, 1800, 890);
 
@@ -44,7 +45,7 @@ int main()
     window.Start();
     window.Destroy();
 
-    printf("shutting down\n");
+    SPDLOG_INFO("Shutting down");
 
     return 0;
 }

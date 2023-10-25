@@ -9,7 +9,7 @@ void ui::CCoreRML::Create(SDL_Window* window, int width, int height)
 	Rml::SetSystemInterface(m_system_interface.get());
 
 	if (!Rml::Initialise())
-		printf("failed to initialize rmlui\n");
+		SPDLOG_ERROR("Failed to initialize RmlUI");
 
 	auto ctx_ptr = Rml::CreateContext("main", Rml::Vector2i(width, height));
 	m_ctx = rml_ctx_type(ctx_ptr, [](Rml::Context* ctx) { Rml::RemoveContext("main"); });
