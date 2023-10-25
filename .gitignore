@@ -2,6 +2,7 @@
 .vscode
 vs2022
 .idea
+resharper*
 
 .xmake
 vsxmake*
