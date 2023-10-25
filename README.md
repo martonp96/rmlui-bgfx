@@ -21,6 +21,7 @@
 - [eigen](https://gitlab.com/libeigen/eigen)
 - [stb](https://github.com/nothings/stb)
 - [SDL2](https://wiki.libsdl.org/SDL2/FrontPage)
+- [spdlog](https://github.com/gabime/spdlog)
 - [null-rmlui](https://github.com/nullptr-sources/null-rmlui)
 - [ConveyorPlayground](https://github.com/ClxS/ConveyorPlayground)
 - [Minimal bgfx + SDL2](https://gist.github.com/zlash/abf8d4bc2efb795a02361e4820a2da10)
