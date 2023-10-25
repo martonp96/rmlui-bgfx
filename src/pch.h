@@ -29,16 +29,12 @@
 #include <RmlUi/Core/TransformPrimitive.h>
 #include <RmlUi/Debugger.h>
 
-//stb
-#include <stb/stb_image.h>
-
 //sdl
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_syswm.h>
 
 //spdlog
 #include <spdlog/spdlog.h>
-#include "core/CLogger.h"
 
 namespace window
 {

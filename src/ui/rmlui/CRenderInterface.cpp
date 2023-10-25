@@ -1,6 +1,9 @@
 #include "CRenderInterface.h"
 #include "rml_helpers.h"
 
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb/stb_image.h>
+
 static unsigned char g_vertex_shader[] = {
     #include "vert.bin.h"
 };

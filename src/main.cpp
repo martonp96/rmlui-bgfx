@@ -1,8 +1,8 @@
-#define STB_IMAGE_IMPLEMENTATION
 #include "pch.h"
 #include "window/CWindow.h"
 #include "ui/rmlui/CCoreRML.h"
 #include "ui/bgfx/CCoreBGFX.h"
+#include "core/CLogger.h"
 
 int main()
 {
