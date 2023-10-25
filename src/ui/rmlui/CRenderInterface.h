@@ -54,7 +54,7 @@ namespace ui
 
 		bool LoadTexture(Rml::TextureHandle& textureHandle, Rml::Vector2i& textureDimensions, const Rml::String& source) override;
 		bool GenerateTexture(Rml::TextureHandle& textureHandle, const uint8_t* source, const Rml::Vector2i& sourceDimensions) override;
-		void ReleaseTexture(Rml::TextureHandle texture);
+		void ReleaseTexture(Rml::TextureHandle texture) override;
 
 		void EnableScissorRegion(bool enable) override;
 		void SetScissorRegion(int x, int y, int width, int height) override;
