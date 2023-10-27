@@ -2,7 +2,7 @@
 #include "pch.h"
 #include "ui/bgfx/CCoreBGFX.h"
 #include "core/CLogger.h"
-#include "api/CCoreAPI.h"
+#include "api/api.h"
 
 namespace window
 {
