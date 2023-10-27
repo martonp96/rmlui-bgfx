@@ -14,7 +14,11 @@
     #endif
 #endif
 
+#if defined(_WIN32)
 #define API_HANDLE(ns) namespace ns{ typedef struct {} *handle; }
+#else
+#define API_HANDLE(ns) namespace ns{ typedef void* handle; }
+#endif
 
 API_HANDLE(rml);
 API_HANDLE(window);
