@@ -7,6 +7,9 @@
 ## Generate Visual Studio project files
 - Run generate_project.bat
 
+## Linux deps
+- ```apt install libgl-dev libxext-dev```
+
 ## Platform compatibility (tested)
 |                        | D3D11 |  Vulkan | Metal |
 |------------------------|-------|---------|-------|
