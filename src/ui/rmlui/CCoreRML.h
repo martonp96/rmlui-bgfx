@@ -5,6 +5,10 @@
 #include "CSystemInterface.h"
 #include "CEventInstancer.h"
 
+namespace window
+{
+    class CWindow;
+}
 
 namespace ui
 {
@@ -21,7 +25,7 @@ namespace ui
         Rml::ElementDocument* m_doc;
 
     public:
-        CCoreRML(SDL_Window* window, const Eigen::Vector2i& size);
+        CCoreRML(window::CWindow* window, const Eigen::Vector2i& size);
         ~CCoreRML();
 
         Rml::ElementDocument* CreateDocument(const std::string& path);

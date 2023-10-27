@@ -29,6 +29,7 @@ CWindow::CWindow(const Eigen::Vector4i& size)
 
     SDL_ShowWindow(m_window);
 
+    m_event_handler = nullptr;
     m_running = true;
     m_ready = false;
     bgfx::renderFrame();
@@ -50,7 +51,7 @@ CWindow::~CWindow()
 
 void CWindow::RunApi()
 {
-    m_bgfx = std::make_unique<ui::CCoreBGFX>(m_window, m_wnd_size);
+    m_bgfx = std::make_unique<ui::CCoreBGFX>(this, m_wnd_size);
     m_ready = true;
     while (m_running)
     {
@@ -77,6 +78,14 @@ void CWindow::RunApi()
 
         m_bgfx->Render();
     }
+}
+
+bool CWindow::SendEvent(Rml::Element* target, Rml::EventId id, const Rml::String& name, const Rml::Dictionary& parameters, bool interruptible)
+{
+    if (m_event_handler)
+        return m_event_handler(reinterpret_cast<rml::handle>(target), (int)id, name.c_str(), reinterpret_cast<rml::dictionary::handle>((void*)&parameters), interruptible);
+
+    return true;
 }
 
 int32_t CWindow::ApiThread(bx::Thread* self, void* userData)

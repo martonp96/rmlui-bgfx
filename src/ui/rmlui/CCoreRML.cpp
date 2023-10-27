@@ -1,10 +1,11 @@
 ﻿#include "CCoreRML.h"
+#include "window/CWindow.h"
 
-ui::CCoreRML::CCoreRML(SDL_Window* window, const Eigen::Vector2i& size)
+ui::CCoreRML::CCoreRML(window::CWindow* window, const Eigen::Vector2i& size)
 {
     m_render_interface = std::make_unique<CRenderInterface>(size);
-    m_system_interface = std::make_unique<CSystemInterface>(window);
-    m_event_instancer = std::make_unique<CEventInstancer>();
+    m_system_interface = std::make_unique<CSystemInterface>(window->GetWindowPtr());
+    m_event_instancer = std::make_unique<CEventInstancer>(window);
 
     Rml::SetRenderInterface(m_render_interface.get());
     Rml::SetSystemInterface(m_system_interface.get());

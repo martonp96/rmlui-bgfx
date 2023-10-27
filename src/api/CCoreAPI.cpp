@@ -9,7 +9,7 @@ window::handle window::api::create(int width, int height)
 
 void window::api::destroy(window::handle window)
 {
-	delete reinterpret_cast<handle>(window);
+	delete window;
 }
 
 bool window::api::is_running(handle window)
@@ -45,6 +45,12 @@ rml::handle window::api::get_document(window::handle window)
 	return reinterpret_cast<rml::handle>(doc);
 }
 
+void window::api::register_event_handler(window::handle window, t_event_handler handler)
+{
+	const auto wnd = reinterpret_cast<CWindow*>(window);
+	wnd->RegisterEventHandler(handler);
+}
+
 void rml::doc::api::set_visible(handle document, bool toggle)
 {
 	const auto doc = reinterpret_cast<Rml::ElementDocument*>(document);
@@ -61,16 +67,16 @@ rml::handle rml::doc::api::get_body(handle document)
 	return document;
 }
 
-rml::handle rml::doc::api::create_element(handle document, const char* name)
+rml::element_ptr::handle rml::doc::api::create_element(handle document, const char* name)
 {
 	const auto doc = reinterpret_cast<Rml::ElementDocument*>(document);
-	return reinterpret_cast<rml::handle>(doc->CreateElement(name).get());
+	return reinterpret_cast<rml::element_ptr::handle>(new Rml::ElementPtr(doc->CreateElement(name)));
 }
 
-rml::handle rml::doc::api::create_text_node(handle document, const char* text)
+rml::element_ptr::handle rml::doc::api::create_text_node(handle document, const char* text)
 {
 	const auto doc = reinterpret_cast<Rml::ElementDocument*>(document);
-	return reinterpret_cast<rml::handle>(doc->CreateTextNode(text).get());
+	return reinterpret_cast<rml::element_ptr::handle>(new Rml::ElementPtr(doc->CreateTextNode(text)));
 }
 
 bool rml::elem::api::add_class(handle element, const char* name)
@@ -293,7 +299,7 @@ char* rml::elem::api::get_attribute(handle element, const char* name)
 rml::dictionary::handle rml::elem::api::get_attributes(handle element)
 {
 	const auto elem = reinterpret_cast<Rml::Element*>(element);
-	const auto attributes = elem->GetAttributes();
+	const auto& attributes = elem->GetAttributes();
 	return reinterpret_cast<dictionary::handle>((void*)&attributes);
 }
 
@@ -458,28 +464,27 @@ void rml::elem::api::append_child(handle element, handle new_element)
 	const auto elem = reinterpret_cast<Rml::Element*>(element);
 	const auto child = reinterpret_cast<Rml::Element*>(new_element);
 
-	Rml::ElementPtr child_ptr{ child };
-	new_element = reinterpret_cast<handle>(elem->AppendChild(std::move(child_ptr)));
+	Rml::ElementPtr oldElement(child);
+    elem->AppendChild(std::move(oldElement));
+	oldElement.release();
 }
 
-void rml::elem::api::insert_before(handle element, handle new_element, handle adjacent_element)
+void rml::elem::api::insert_before(handle element, element_ptr::handle new_element, handle adjacent_element)
 {
 	const auto elem = reinterpret_cast<Rml::Element*>(element);
-	const auto child = reinterpret_cast<Rml::Element*>(new_element);
+	const auto child = reinterpret_cast<Rml::ElementPtr*>(new_element);
 	const auto adjacent = reinterpret_cast<Rml::Element*>(adjacent_element);
-
-	Rml::ElementPtr child_ptr{ child };
-	new_element = reinterpret_cast<handle>(elem->InsertBefore(std::move(child_ptr), adjacent));
+	
+	reinterpret_cast<handle>(elem->InsertBefore(std::move(*child), adjacent));
 }
 
-void rml::elem::api::replace_child(handle element, handle new_element, handle old_element)
+void rml::elem::api::replace_child(handle element, element_ptr::handle new_element, handle old_element)
 {
 	const auto elem = reinterpret_cast<Rml::Element*>(element);
-	const auto child = reinterpret_cast<Rml::Element*>(new_element);
+	const auto child = reinterpret_cast<Rml::ElementPtr*>(new_element);
 	const auto old = reinterpret_cast<Rml::Element*>(old_element);
-
-	Rml::ElementPtr child_ptr{ child };
-	elem->ReplaceChild(std::move(child_ptr), old);
+	
+	elem->ReplaceChild(std::move(*child), old);
 }
 
 void rml::elem::api::remove_child(handle element, handle child_element)
@@ -685,4 +690,15 @@ void* rml::ptr_array::get_at(handle arr, int at)
 void rml::ptr_array::destroy_arr(handle arr)
 {
 	delete reinterpret_cast<std::vector<void*>*>(arr);
+}
+
+rml::handle rml::element_ptr::get_ptr(handle ptr)
+{
+	const auto elem = reinterpret_cast<Rml::ElementPtr*>(ptr)->get();
+	return reinterpret_cast<rml::handle>(elem);
+}
+
+void rml::element_ptr::destroy_ptr(handle ptr)
+{
+	delete reinterpret_cast<Rml::ElementPtr*>(ptr);
 }

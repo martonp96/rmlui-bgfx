@@ -25,9 +25,12 @@ API_HANDLE(window);
 API_HANDLE(rml::variant);
 API_HANDLE(rml::dictionary);
 API_HANDLE(rml::ptr_array);
+API_HANDLE(rml::element_ptr);
 
 namespace window::api
 {
+    typedef bool(*t_event_handler)(rml::handle element, unsigned short id, const char* name, rml::dictionary::handle parameters, bool interruptible);
+
     API_FUNC handle create(int width, int height);
     API_FUNC void destroy(handle window);
     API_FUNC bool is_running(handle window);
@@ -37,6 +40,8 @@ namespace window::api
     API_FUNC rml::handle create_document(handle window, const char* rml);
     API_FUNC rml::handle load_document(handle window, const char* path);
     API_FUNC rml::handle get_document(handle window);
+
+    API_FUNC void register_event_handler(window::handle window, t_event_handler handler);
 }
 
 namespace rml::doc::api
@@ -45,8 +50,14 @@ namespace rml::doc::api
     API_FUNC void update(handle document);
 
     API_FUNC rml::handle get_body(handle document);
-    API_FUNC rml::handle create_element(handle document, const char* name);
-    API_FUNC rml::handle create_text_node(handle document, const char* text);
+    API_FUNC element_ptr::handle create_element(handle document, const char* name);
+    API_FUNC element_ptr::handle create_text_node(handle document, const char* text);
+}
+
+namespace rml::element_ptr
+{
+    API_FUNC rml::handle get_ptr(handle ptr);
+    API_FUNC void destroy_ptr(handle ptr);
 }
 
 namespace rml::variant
@@ -159,8 +170,8 @@ namespace rml::elem::api
     API_FUNC handle get_child(handle element, int index);
     API_FUNC int get_child_count(handle element);
     API_FUNC void append_child(handle element, handle new_element);
-    API_FUNC void insert_before(handle element, handle new_element, handle adjacent_element);
-    API_FUNC void replace_child(handle element, handle new_element, handle old_element);
+    API_FUNC void insert_before(handle element, element_ptr::handle new_element, handle adjacent_element);
+    API_FUNC void replace_child(handle element, element_ptr::handle new_element, handle old_element);
     API_FUNC void remove_child(handle element, handle child);
     API_FUNC bool has_children(handle element);
 

@@ -1,10 +1,11 @@
 #include "CCoreBGFX.h"
+#include "window/CWindow.h"
 
-ui::CCoreBGFX::CCoreBGFX(SDL_Window* window, const Eigen::Vector2i& size)
+ui::CCoreBGFX::CCoreBGFX(window::CWindow* window, const Eigen::Vector2i& size)
 {
     SDL_SysWMinfo wmi;
     SDL_VERSION(&wmi.version);
-    if (!SDL_GetWindowWMInfo(window, &wmi)) {
+    if (!SDL_GetWindowWMInfo(window->GetWindowPtr(), &wmi)) {
         return;
     }
 

@@ -1,7 +1,11 @@
 #pragma once
 #include "pch.h"
 #include "ui/rmlui/CCoreRML.h"
-#include "window/CEvent.h"
+
+namespace window
+{
+    class CWindow;
+}
 
 namespace ui
 {
@@ -12,7 +16,7 @@ namespace ui
 
         std::unique_ptr<ui::CCoreRML> m_rml;
     public:
-        CCoreBGFX(SDL_Window* window, const Eigen::Vector2i& size);
+        CCoreBGFX(window::CWindow* window, const Eigen::Vector2i& size);
         ~CCoreBGFX();
 
         void Resize(const Eigen::Vector2i& size);
