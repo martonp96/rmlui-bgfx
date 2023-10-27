@@ -35,15 +35,15 @@ namespace ui
         
         Eigen::Matrix4f m_projection;
 
-        int m_width, m_height;
+        Eigen::Vector2i m_size;
 
         uint32_t m_idx = 0;
 
     public:
-        CRenderInterface(int width, int height);
+        CRenderInterface(const Eigen::Vector2i& size);
 
         void SetupProjection();
-        void Resize(int width, int height);
+        void Resize(const Eigen::Vector2i& size);
         void Render(const Rml::Vector2f& translation, bgfx::VertexBufferHandle vertex_buffer, bgfx::IndexBufferHandle index_buffer, Rml::TextureHandle texture, uint64_t state);
 
         void RenderGeometry(Rml::Vertex* vertices, int numVertices, int* indices, int numIndices, Rml::TextureHandle texture, const Rml::Vector2f& translation) override;

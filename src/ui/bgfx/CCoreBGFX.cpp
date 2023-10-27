@@ -1,6 +1,6 @@
 #include "CCoreBGFX.h"
 
-void ui::CCoreBGFX::Create(SDL_Window* window, int width, int height)
+ui::CCoreBGFX::CCoreBGFX(SDL_Window* window, const Eigen::Vector2i& size)
 {
     SDL_SysWMinfo wmi;
     SDL_VERSION(&wmi.version);
@@ -10,8 +10,8 @@ void ui::CCoreBGFX::Create(SDL_Window* window, int width, int height)
 
     bgfx::Init init;
     init.vendorId = BGFX_PCI_ID_NONE;
-    init.resolution.width = width;
-    init.resolution.height = height;
+    init.resolution.width = size[0];
+    init.resolution.height = size[1];
     init.resolution.reset = BGFX_RESET_VSYNC;
 
 #if BX_PLATFORM_LINUX || BX_PLATFORM_BSD
@@ -36,7 +36,7 @@ void ui::CCoreBGFX::Create(SDL_Window* window, int width, int height)
     init.platformData.backBufferDS = nullptr;
     init.platformData.type = bgfx::NativeWindowHandleType::Default;
 
-    if(!bgfx::init(init))
+    if (!bgfx::init(init))
     {
         SPDLOG_ERROR("Failed to init bgfx");
         return;
@@ -44,9 +44,6 @@ void ui::CCoreBGFX::Create(SDL_Window* window, int width, int height)
 
     SPDLOG_DEBUG("bgfx inited");
 
-    m_width = width;
-    m_height = height;
-    
     // Enable debug text.
     bgfx::setDebug(BGFX_DEBUG_TEXT);
 
@@ -57,30 +54,34 @@ void ui::CCoreBGFX::Create(SDL_Window* window, int width, int height)
     bgfx::setViewMode(0, bgfx::ViewMode::Sequential);
     bgfx::setViewFrameBuffer(0, BGFX_INVALID_HANDLE);
     bgfx::setViewScissor(0, 0, 0, 0, 0);
+
+    m_rml = std::make_unique<CCoreRML>(window, size);
 }
 
-void ui::CCoreBGFX::Destroy()
+ui::CCoreBGFX::~CCoreBGFX()
 {
+    m_rml.reset(); //must be destroyed before shutting down bgfx
     bgfx::shutdown();
 }
 
-void ui::CCoreBGFX::Resize(int width, int height)
+void ui::CCoreBGFX::Resize(const Eigen::Vector2i& size)
 {
-    m_width = width;
-    m_height = height;
+    bgfx::reset(size[0], size[1]);
+    bgfx::setViewRect(0, 0, 0, size[0], size[1]);
 
-    bgfx::reset(width, height);
-    bgfx::setViewRect(0, 0, 0, width, height);
+    m_rml->Resize(size);
 }
 
-void ui::CCoreBGFX::PreRender()
+void ui::CCoreBGFX::Render()
 {
     bgfx::touch(0);
+    m_rml->Render();
+    bgfx::frame();
 }
 
-void ui::CCoreBGFX::PostRender()
+bool ui::CCoreBGFX::OnEvent(window::CEvent* event)
 {
-    bgfx::frame();
+    return ui::CSystemInterface::OnEvent(m_rml->GetContext(), event);
 }
 
 void ui::CCoreBGFX::DebugRender()

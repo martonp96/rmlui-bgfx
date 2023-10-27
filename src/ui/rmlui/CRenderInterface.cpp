@@ -1,5 +1,4 @@
 #include "CRenderInterface.h"
-#include "rml_helpers.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb/stb_image.h>
@@ -12,7 +11,7 @@ static unsigned char g_fragment_shader[] = {
     #include "frag.bin.h"
 };
 
-ui::CRenderInterface::CRenderInterface(int width, int height) : m_width(width), m_height(height)
+ui::CRenderInterface::CRenderInterface(const Eigen::Vector2i& size) : m_size(size)
 {
     m_render_view_id = 0;
 
@@ -49,7 +48,7 @@ ui::CRenderInterface::CRenderInterface(int width, int height) : m_width(width), 
     SetupProjection();
 }
 
-Rml::CompiledGeometryHandle ui::CRenderInterface::CompileGeometry(Rml::Vertex* vertices, int numVertices,    int* indices, int numIndices, Rml::TextureHandle texture)
+Rml::CompiledGeometryHandle ui::CRenderInterface::CompileGeometry(Rml::Vertex* vertices, int numVertices, int* indices, int numIndices, Rml::TextureHandle texture)
 {
     const bgfx::Memory* vertexMemory = bgfx::alloc(m_rml_vertex_layout.getSize(numVertices));
     const bgfx::Memory* indexMemory = bgfx::alloc(numIndices * sizeof(int));
@@ -198,15 +197,13 @@ void ui::CRenderInterface::SetTransform(const Rml::Matrix4f* transform)
 
 void ui::CRenderInterface::SetupProjection()
 {
-    bx::mtxOrtho(m_projection.data(), 0.f, m_width, m_height, 0.f, -10000.f, 10000.f, 0.f, bgfx::getCaps()->homogeneousDepth);
+    bx::mtxOrtho(m_projection.data(), 0.f, m_size[0], m_size[1], 0.f, -10000.f, 10000.f, 0.f, bgfx::getCaps()->homogeneousDepth);
     bgfx::setUniform(m_projection_handle, m_projection.data());
 }
 
-void ui::CRenderInterface::Resize(int width, int height)
+void ui::CRenderInterface::Resize(const Eigen::Vector2i& size)
 {
-    m_width = width;
-    m_height = height;
-
+    m_size = size;
     SetupProjection();
 }
 

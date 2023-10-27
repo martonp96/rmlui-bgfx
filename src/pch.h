@@ -2,11 +2,7 @@
 
 //std
 #include <functional>
-#include <optional>
-#include <chrono>
-#include <fstream>
-#include <algorithm>
-#include <mutex>
+#include <unordered_map>
 
 //bgfx
 #include <bgfx/bgfx.h>

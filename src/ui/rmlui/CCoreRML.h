@@ -3,6 +3,7 @@
 
 #include "CRenderInterface.h"
 #include "CSystemInterface.h"
+#include "CEventInstancer.h"
 
 
 namespace ui
@@ -15,13 +16,21 @@ namespace ui
         
         std::unique_ptr<CRenderInterface> m_render_interface;
         std::unique_ptr<CSystemInterface> m_system_interface;
+        std::unique_ptr<CEventInstancer> m_event_instancer;
+
+        Rml::ElementDocument* m_doc;
 
     public:
-        void Create(SDL_Window* window, int width, int height);
-        void Resize(int width, int height);
-        void Destroy();
+        CCoreRML(SDL_Window* window, const Eigen::Vector2i& size);
+        ~CCoreRML();
+
+        Rml::ElementDocument* CreateDocument(const std::string& path);
+        Rml::ElementDocument* CreateDocumentFromMemory(const std::string& data);
+        
+        void Resize(const Eigen::Vector2i& size);
         void Render();
 
-        rml_ctx_type& GetContext() { return m_ctx; }
+        Rml::Context* GetContext() const { return m_ctx.get(); }
+        Rml::ElementDocument* GetDocument() const { return m_doc; }
     };
 }

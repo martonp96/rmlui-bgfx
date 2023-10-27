@@ -6,9 +6,9 @@ set_languages("cxx20", "cxx2a")
 set_runtimes(is_mode("debug") and "MTd" or "MT")
 set_symbols("debug")
 
-add_requires("bgfx_custom", "rmlui_custom", "eigen", "stb", "libsdl")
+add_rules("plugin.vsxmake.autoupdate")
+add_requires("bgfx_custom", "rmlui_custom", "eigen", "stb", "spdlog")
 add_requires("libsdl", { configs = { wayland = true, x11 = false, with_x = false } })
-add_requires("spdlog")
 
 local shaders = {
     { "vert.sc", "vert.bin", "common", "vertex",   "varying.def.sc" },
@@ -29,15 +29,16 @@ end
 target("rmlui-bgfx")
     set_arch(os.arch())
     set_plat(os.host())
-    set_default(true)
-    set_kind("binary")
+    set_default(false)
+    set_kind("shared")
     set_prefixname("")
     set_pcxxheader("src/pch.h")
     add_files("src/**.cpp", shadersPath .. "*.bin")
     add_headerfiles("src/**.h", "include/**.h")
-    add_includedirs("src/", "include/", { public = true })
+    add_includedirs("src/", "include/", "src/api/", { public = true })
     add_packages("bgfx_custom", "rmlui_custom", "eigen", "stb", "libsdl", "spdlog")
     add_rules("utils.bin2c")
+    add_defines("BUILD_SHARED")
     after_load(function (target)
         local shadercPath = path.join(target:pkg("bgfx_custom"):installdir(), "bin/shadercRelease" .. (is_host("windows") and ".exe" or ""))
         for _, shader in pairs(shaders) do
@@ -70,4 +71,9 @@ target("rmlui-bgfx")
         add_defines("SPDLOG_ACTIVE_LEVEL=2") -- Info
     end
 
-    add_rules("plugin.vsxmake.autoupdate")
+target("rmlui-bgfx-test")
+    set_default(true)
+    set_kind("binary")
+    add_files("test/main.cpp")
+    add_deps("rmlui-bgfx")
+    add_defines("BUILD_SHARED")
