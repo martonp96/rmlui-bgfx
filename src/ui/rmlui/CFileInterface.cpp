@@ -46,7 +46,7 @@ bool ui::CFileInterface::Seek(Rml::FileHandle file, long offset, int origin)
             return false;
         break;
     }
-    std_file->seekg(offset, origin);
+    std_file->seekg(offset, static_cast<std::ios_base::seekdir>(origin));
 }
 
 size_t ui::CFileInterface::Tell(Rml::FileHandle file)
@@ -60,9 +60,9 @@ size_t ui::CFileInterface::Length(Rml::FileHandle file)
 {
     const auto std_file = reinterpret_cast<std::ifstream*>(file);
     const auto current_pos = std_file->tellg();
-    std_file->seekg(0, 2);
+    std_file->seekg(0, std::ios_base::end);
     const auto file_size = std_file->tellg();
-    std_file->seekg(0, current_pos);
+    std_file->seekg(current_pos);
     SPDLOG_INFO("Get length of file: {:x} {}", file, file_size);
     return file_size;
 }
