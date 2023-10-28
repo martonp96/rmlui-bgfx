@@ -138,6 +138,7 @@ void CWindow::Loop()
                 g_api_thread_events.push(new CEvent(SDL_WINDOWEVENT_LEAVE));
                 break;
             }
+            break;
         }
         case SDL_MOUSEMOTION:
             g_api_thread_events.push(new CEventMouseMotion(event.motion.x, event.motion.y, SDL_GetModState()));
