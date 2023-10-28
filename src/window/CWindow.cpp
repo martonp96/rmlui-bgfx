@@ -30,10 +30,10 @@ CWindow::CWindow(const Eigen::Vector4i& size)
     SDL_ShowWindow(m_window);
 
     m_event_handler = nullptr;
-    m_running = true;
+    m_render_handler = nullptr;
+    m_update_handler = nullptr;
+
     m_ready = false;
-    bgfx::renderFrame();
-    m_api_thread.init(ApiThread, this);
 }
 
 CWindow::~CWindow()
@@ -49,10 +49,21 @@ CWindow::~CWindow()
     SDL_Quit();
 }
 
+void CWindow::Start()
+{
+    m_running = true;
+    bgfx::renderFrame();
+    m_api_thread.init(ApiThread, this);
+}
+
 void CWindow::RunApi()
 {
     m_bgfx = std::make_unique<ui::CCoreBGFX>(this, m_wnd_size);
     m_ready = true;
+
+    if (m_render_init_handler)
+        m_render_init_handler();
+
     while (m_running)
     {
         while (auto ev = (CEvent*)g_api_thread_events.pop())
@@ -75,6 +86,9 @@ void CWindow::RunApi()
             }
             delete ev;
         }
+
+        if (m_render_handler)
+            m_render_handler();
 
         m_bgfx->Render();
     }
@@ -150,7 +164,7 @@ void CWindow::Loop()
             break;
         }
     }
-
+    
     if (!m_running) return;
 
     bgfx::renderFrame();

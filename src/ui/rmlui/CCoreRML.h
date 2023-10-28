@@ -4,6 +4,7 @@
 #include "CRenderInterface.h"
 #include "CSystemInterface.h"
 #include "CEventInstancer.h"
+#include "CFileInterface.h"
 
 namespace window
 {
@@ -21,6 +22,7 @@ namespace ui
         std::unique_ptr<CRenderInterface> m_render_interface;
         std::unique_ptr<CSystemInterface> m_system_interface;
         std::unique_ptr<CEventInstancer> m_event_instancer;
+        std::unique_ptr<CFileInterface> m_file_interface;
 
         Rml::ElementDocument* m_doc;
 

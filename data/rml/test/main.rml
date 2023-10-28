@@ -13,5 +13,6 @@ body
 </head>
 <body>
 sample text
+<img src="logo.tga"/>
 </body>
 </rml>

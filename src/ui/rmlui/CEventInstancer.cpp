@@ -4,7 +4,7 @@
 Rml::EventPtr ui::CEventInstancer::InstanceEvent(Rml::Element* target, Rml::EventId id, const Rml::String& name, const Rml::Dictionary& parameters, bool interruptible)
 {
 	const auto ev = new Rml::Event(target, id, name, parameters, interruptible);
-	if (!m_window->SendEvent(target, id, name, parameters, interruptible))
+	if (!m_window->SendEvent(target, id, name, parameters, interruptible) && interruptible)
 		ev->StopImmediatePropagation();
 	return Rml::EventPtr(ev);
 }

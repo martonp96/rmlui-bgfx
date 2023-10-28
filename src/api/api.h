@@ -22,6 +22,7 @@
 
 API_HANDLE(rml);
 API_HANDLE(window);
+API_HANDLE(file);
 API_HANDLE(rml::variant);
 API_HANDLE(rml::dictionary);
 API_HANDLE(rml::ptr_array);
@@ -29,10 +30,12 @@ API_HANDLE(rml::element_ptr);
 
 namespace window::api
 {
-    typedef bool(*t_event_handler)(rml::handle element, unsigned short id, const char* name, rml::dictionary::handle parameters, bool interruptible);
+    typedef bool(*t_rml_event_handler)(rml::handle element, unsigned short id, const char* name, rml::dictionary::handle parameters, bool interruptible);
+    typedef void(*t_generic_event_handler)();
 
     API_FUNC handle create(int width, int height);
     API_FUNC void destroy(handle window);
+    API_FUNC void start(handle window); //needed so you can register event handlers before they are fired
     API_FUNC bool is_running(handle window);
     API_FUNC bool is_ready(handle window);
     API_FUNC void run_loop(handle window);
@@ -41,7 +44,21 @@ namespace window::api
     API_FUNC rml::handle load_document(handle window, const char* path);
     API_FUNC rml::handle get_document(handle window);
 
-    API_FUNC void register_event_handler(window::handle window, t_event_handler handler);
+    API_FUNC void register_event_handler(window::handle window, t_rml_event_handler handler);
+    API_FUNC void register_render_event_handler(window::handle window, t_generic_event_handler handler);
+    API_FUNC void register_update_event_handler(window::handle window, t_generic_event_handler handler);
+    API_FUNC void register_window_init_event_handler(window::handle window, t_generic_event_handler handler);
+    API_FUNC void register_render_init_event_handler(window::handle window, t_generic_event_handler handler);
+
+    API_FUNC file::handle file_open(const char* path);
+    API_FUNC void file_close(file::handle file);
+
+    API_FUNC unsigned long long file_read(file::handle file, void* buffer, unsigned long long size);
+    API_FUNC bool file_seek(file::handle file, long offset, int origin);
+    API_FUNC unsigned long long file_tell(file::handle file);
+    API_FUNC unsigned long long file_length(file::handle file);
+
+    API_FUNC void load_font_face(const char* path, bool is_default);
 }
 
 namespace rml::doc::api
@@ -169,10 +186,10 @@ namespace rml::elem::api
     API_FUNC handle get_last_child(handle element);
     API_FUNC handle get_child(handle element, int index);
     API_FUNC int get_child_count(handle element);
-    API_FUNC void append_child(handle element, handle new_element);
-    API_FUNC void insert_before(handle element, element_ptr::handle new_element, handle adjacent_element);
-    API_FUNC void replace_child(handle element, element_ptr::handle new_element, handle old_element);
-    API_FUNC void remove_child(handle element, handle child);
+    API_FUNC handle append_child(handle element, handle new_element);
+    API_FUNC handle insert_before(handle element, handle new_element, handle adjacent_element);
+    API_FUNC handle replace_child(handle element, handle new_element, handle old_element);
+    API_FUNC handle remove_child(handle element, handle child);
     API_FUNC bool has_children(handle element);
 
     API_FUNC char* get_inner_rml(handle element);
@@ -190,4 +207,7 @@ namespace rml::elem::api
     API_FUNC ptr_array::handle query_selector_all(handle element, const char* selector);
 
     API_FUNC handle get_owner_document(handle element);
+
+    API_FUNC char* form_control_get_value(handle element);
+    API_FUNC void form_control_set_value(handle element, const char* value);
 }

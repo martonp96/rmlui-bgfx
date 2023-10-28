@@ -12,6 +12,11 @@ void window::api::destroy(window::handle window)
 	delete window;
 }
 
+void window::api::start(handle window)
+{
+	reinterpret_cast<CWindow*>(window)->Start();
+}
+
 bool window::api::is_running(handle window)
 {
 	return reinterpret_cast<CWindow*>(window)->IsRunning();
@@ -45,10 +50,34 @@ rml::handle window::api::get_document(window::handle window)
 	return reinterpret_cast<rml::handle>(doc);
 }
 
-void window::api::register_event_handler(window::handle window, t_event_handler handler)
+void window::api::register_event_handler(window::handle window, t_rml_event_handler handler)
 {
 	const auto wnd = reinterpret_cast<CWindow*>(window);
 	wnd->RegisterEventHandler(handler);
+}
+
+void window::api::register_render_event_handler(window::handle window, t_generic_event_handler handler)
+{
+	const auto wnd = reinterpret_cast<CWindow*>(window);
+	wnd->RegisterRenderEventHandler(handler);
+}
+
+void window::api::register_update_event_handler(window::handle window, t_generic_event_handler handler)
+{
+	const auto wnd = reinterpret_cast<CWindow*>(window);
+	wnd->RegisterUpdateEventHandler(handler);
+}
+
+void window::api::register_window_init_event_handler(window::handle window, t_generic_event_handler handler)
+{
+	const auto wnd = reinterpret_cast<CWindow*>(window);
+	wnd->RegisterWindowInitEventHandler(handler);
+}
+
+void window::api::register_render_init_event_handler(window::handle window, t_generic_event_handler handler)
+{
+	const auto wnd = reinterpret_cast<CWindow*>(window);
+	wnd->RegisterRenderInitEventHandler(handler);
 }
 
 void rml::doc::api::set_visible(handle document, bool toggle)
@@ -459,39 +488,51 @@ int rml::elem::api::get_child_count(handle element)
 	return elem->GetNumChildren();
 }
 
-void rml::elem::api::append_child(handle element, handle new_element)
+rml::handle rml::elem::api::append_child(handle element, handle new_element)
 {
 	const auto elem = reinterpret_cast<Rml::Element*>(element);
 	const auto child = reinterpret_cast<Rml::Element*>(new_element);
 
 	Rml::ElementPtr oldElement(child);
-    elem->AppendChild(std::move(oldElement));
+	const auto ret = reinterpret_cast<handle>(elem->AppendChild(std::move(oldElement)));
 	oldElement.release();
+	return ret;
 }
 
-void rml::elem::api::insert_before(handle element, element_ptr::handle new_element, handle adjacent_element)
+rml::handle rml::elem::api::insert_before(handle element, handle new_element, handle adjacent_element)
 {
 	const auto elem = reinterpret_cast<Rml::Element*>(element);
-	const auto child = reinterpret_cast<Rml::ElementPtr*>(new_element);
+	const auto child = reinterpret_cast<Rml::Element*>(new_element);
 	const auto adjacent = reinterpret_cast<Rml::Element*>(adjacent_element);
-	
-	reinterpret_cast<handle>(elem->InsertBefore(std::move(*child), adjacent));
+
+	Rml::ElementPtr oldElement(child);
+	const auto ret = reinterpret_cast<handle>(elem->InsertBefore(std::move(oldElement), adjacent));
+	oldElement.release();
+	return ret;
 }
 
-void rml::elem::api::replace_child(handle element, element_ptr::handle new_element, handle old_element)
+rml::handle rml::elem::api::replace_child(handle element, handle new_element, handle old_element)
 {
 	const auto elem = reinterpret_cast<Rml::Element*>(element);
-	const auto child = reinterpret_cast<Rml::ElementPtr*>(new_element);
+	const auto child = reinterpret_cast<Rml::Element*>(new_element);
 	const auto old = reinterpret_cast<Rml::Element*>(old_element);
-	
-	elem->ReplaceChild(std::move(*child), old);
+
+	Rml::ElementPtr oldElement(child);
+	auto ret_ptr = elem->ReplaceChild(std::move(oldElement), old);
+	const auto ret = ret_ptr.get();
+	ret_ptr.release();
+	oldElement.release();
+	return reinterpret_cast<rml::handle>(ret);
 }
 
-void rml::elem::api::remove_child(handle element, handle child_element)
+rml::handle rml::elem::api::remove_child(handle element, handle child_element)
 {
 	const auto elem = reinterpret_cast<Rml::Element*>(element);
 	const auto child = reinterpret_cast<Rml::Element*>(child_element);
-	elem->RemoveChild(child);
+	auto ret_ptr = elem->RemoveChild(child);
+	const auto ret = ret_ptr.get();
+	ret_ptr.release();
+	return reinterpret_cast<rml::handle>(ret);
 }
 
 bool rml::elem::api::has_children(handle element)
@@ -576,6 +617,19 @@ rml::handle rml::elem::api::get_owner_document(handle element)
 {
 	const auto elem = reinterpret_cast<Rml::Element*>(element);
 	return reinterpret_cast<handle>(elem->GetOwnerDocument());
+}
+
+char* rml::elem::api::form_control_get_value(handle element)
+{
+	const auto elem = reinterpret_cast<Rml::ElementFormControl*>(element);
+	return (char*)elem->GetValue().c_str();
+}
+
+
+void rml::elem::api::form_control_set_value(handle element, const char* value)
+{
+	const auto elem = reinterpret_cast<Rml::ElementFormControl*>(element);
+	elem->SetValue(value);
 }
 
 int rml::variant::get_type(handle variant)
@@ -701,4 +755,39 @@ rml::handle rml::element_ptr::get_ptr(handle ptr)
 void rml::element_ptr::destroy_ptr(handle ptr)
 {
 	delete reinterpret_cast<Rml::ElementPtr*>(ptr);
+}
+
+file::handle window::api::file_open(const char* path)
+{
+	return reinterpret_cast<file::handle>(Rml::GetFileInterface()->Open(path));
+}
+
+void window::api::file_close(file::handle file)
+{
+	Rml::GetFileInterface()->Close(reinterpret_cast<Rml::FileHandle>(file));
+}
+
+unsigned long long window::api::file_read(file::handle file, void* buffer, unsigned long long size)
+{
+	return Rml::GetFileInterface()->Read(buffer, size, reinterpret_cast<Rml::FileHandle>(file));
+}
+
+bool window::api::file_seek(file::handle file, long offset, int origin)
+{
+	return Rml::GetFileInterface()->Seek(reinterpret_cast<Rml::FileHandle>(file), offset, origin);
+}
+
+unsigned long long window::api::file_tell(file::handle file)
+{
+	return Rml::GetFileInterface()->Tell(reinterpret_cast<Rml::FileHandle>(file));
+}
+
+unsigned long long window::api::file_length(file::handle file)
+{
+	return Rml::GetFileInterface()->Length(reinterpret_cast<Rml::FileHandle>(file));
+}
+
+void window::api::load_font_face(const char* path, bool is_default)
+{
+	Rml::LoadFontFace(path, is_default);
 }

@@ -3,6 +3,8 @@
 //std
 #include <functional>
 #include <unordered_map>
+#include <filesystem>
+#include <fstream>
 
 //bgfx
 #include <bgfx/bgfx.h>

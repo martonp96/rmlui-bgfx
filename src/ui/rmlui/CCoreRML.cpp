@@ -6,9 +6,11 @@ ui::CCoreRML::CCoreRML(window::CWindow* window, const Eigen::Vector2i& size)
     m_render_interface = std::make_unique<CRenderInterface>(size);
     m_system_interface = std::make_unique<CSystemInterface>(window->GetWindowPtr());
     m_event_instancer = std::make_unique<CEventInstancer>(window);
+    m_file_interface = std::make_unique<CFileInterface>();
 
     Rml::SetRenderInterface(m_render_interface.get());
     Rml::SetSystemInterface(m_system_interface.get());
+    //Rml::SetFileInterface(m_file_interface.get());
 
     Rml::Factory::RegisterEventInstancer(m_event_instancer.get());
 
@@ -20,10 +22,6 @@ ui::CCoreRML::CCoreRML(window::CWindow* window, const Eigen::Vector2i& size)
 
     Rml::Debugger::Initialise(ctx_ptr);
     //Rml::Debugger::SetVisible(true);
-
-    Rml::LoadFontFace("arial.ttf", true);
-    //auto doc = m_ctx->LoadDocument("main.rml");
-    //doc->Show();
 }
 
 ui::CCoreRML::~CCoreRML()
