@@ -7,8 +7,13 @@ set_runtimes(is_mode("debug") and "MTd" or "MT")
 set_symbols("debug")
 
 add_rules("plugin.vsxmake.autoupdate")
-add_requires("bgfx_custom", "rmlui_custom", "eigen", "stb", "spdlog", "node-api-headers", "node-addon-api")
+add_requires("rmlui_custom", "eigen", "stb", "node-api-headers", "node-addon-api")
 add_requires("libsdl", { configs = { wayland = true, x11 = false, with_x = false } })
+if is_host("linux") then 
+    add_requires("bgfx_custom", "spdlog", { configs = { cxflags = "-fPIC" } })
+else
+    add_requires("bgfx_custom", "spdlog")
+end
 
 local shaders = {
     { "vert.sc", "vert.bin", "common", "vertex",   "varying.def.sc" },
@@ -90,6 +95,7 @@ target("rmlui-bgfx-demo")
 target("rmlui-bgfx-test-node")
     set_default(true)
     set_kind("shared")
+    set_prefixname("")
     set_extension(".node")
     add_files("test_node/main.cpp")
     add_deps("rmlui-bgfx")
