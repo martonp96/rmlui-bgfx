@@ -1,3 +1,6 @@
+#define NODE_ADDON_API_DISABLE_DEPRECATED
+#include <napi.h>
+
 #include <cstdio>
 #include <string>
 
@@ -26,18 +29,13 @@ bool event_handler(rml::handle element, unsigned short id, const char* name, rml
         rml::elem::set_property(rml::elem_ptr::get_ptr(elem), "position", "absolute");
     }
 
-    /*for(int i = 0; i < rml::dict::get_dict_size(parameters); i++)
-    {
-        printf("%s\n", rml::dict::get_key(parameters, i));
-    }*/
-
     return true;
 }
 
 void RenderInitHandler()
 {
     app::load_font_face("arial.ttf", true);
-    
+
     auto doc = app::load_document(wnd, "main.rml");
     rml::doc::set_visible(doc, true);
 
@@ -45,8 +43,7 @@ void RenderInitHandler()
     rml::elem::append_child(app::get_document(wnd), rml::elem_ptr::get_ptr(elem));
 }
 
-
-int main()
+int fn_main()
 {
     wnd = app::create(1800, 890);
 
@@ -62,3 +59,14 @@ int main()
 
     return 0;
 }
+
+void RunMain(const Napi::CallbackInfo &info) {
+  fn_main();
+}
+
+Napi::Object Init(Napi::Env env, Napi::Object exports) 
+{
+    exports.Set(Napi::String::New(env, "main"), Napi::Function::New(env, RunMain));
+    return exports;
+}
+NODE_API_MODULE(addon, Init)
