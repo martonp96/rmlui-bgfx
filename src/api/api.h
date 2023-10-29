@@ -21,34 +21,34 @@
 #endif
 
 API_HANDLE(rml);
-API_HANDLE(window);
+API_HANDLE(app);
 API_HANDLE(file);
 API_HANDLE(rml::variant);
-API_HANDLE(rml::dictionary);
+API_HANDLE(rml::dict);
 API_HANDLE(rml::ptr_array);
-API_HANDLE(rml::element_ptr);
+API_HANDLE(rml::elem_ptr);
 
-namespace window::api
+namespace app
 {
-    typedef bool(*t_rml_event_handler)(rml::handle element, unsigned short id, const char* name, rml::dictionary::handle parameters, bool interruptible);
+    typedef bool(*t_rml_event_handler)(rml::handle element, unsigned short id, const char* name, rml::dict::handle parameters, bool interruptible);
     typedef void(*t_generic_event_handler)();
 
     API_FUNC handle create(int width, int height);
-    API_FUNC void destroy(handle window);
-    API_FUNC void start(handle window); //needed so you can register event handlers before they are fired
-    API_FUNC bool is_running(handle window);
-    API_FUNC bool is_ready(handle window);
-    API_FUNC void run_loop(handle window);
+    API_FUNC void destroy(handle app);
+    API_FUNC void start(handle app); //needed so you can register event handlers before they are fired
+    API_FUNC bool is_running(handle app);
+    API_FUNC bool is_ready(handle app);
+    API_FUNC void run_loop(handle app);
 
-    API_FUNC rml::handle create_document(handle window, const char* rml);
-    API_FUNC rml::handle load_document(handle window, const char* path);
-    API_FUNC rml::handle get_document(handle window);
+    API_FUNC rml::handle create_document(handle app, const char* rml);
+    API_FUNC rml::handle load_document(handle app, const char* path);
+    API_FUNC rml::handle get_document(handle app);
 
-    API_FUNC void register_event_handler(window::handle window, t_rml_event_handler handler);
-    API_FUNC void register_render_event_handler(window::handle window, t_generic_event_handler handler);
-    API_FUNC void register_update_event_handler(window::handle window, t_generic_event_handler handler);
-    API_FUNC void register_window_init_event_handler(window::handle window, t_generic_event_handler handler);
-    API_FUNC void register_render_init_event_handler(window::handle window, t_generic_event_handler handler);
+    API_FUNC void register_event_handler(handle app, t_rml_event_handler handler);
+    API_FUNC void register_render_event_handler(handle app, t_generic_event_handler handler);
+    API_FUNC void register_update_event_handler(handle app, t_generic_event_handler handler);
+    API_FUNC void register_window_init_event_handler(handle app, t_generic_event_handler handler);
+    API_FUNC void register_render_init_event_handler(handle app, t_generic_event_handler handler);
 
     API_FUNC file::handle file_open(const char* path);
     API_FUNC void file_close(file::handle file);
@@ -61,17 +61,17 @@ namespace window::api
     API_FUNC void load_font_face(const char* path, bool is_default);
 }
 
-namespace rml::doc::api
+namespace rml::doc
 {
     API_FUNC void set_visible(handle document, bool toggle);
     API_FUNC void update(handle document);
 
     API_FUNC rml::handle get_body(handle document);
-    API_FUNC element_ptr::handle create_element(handle document, const char* name);
-    API_FUNC element_ptr::handle create_text_node(handle document, const char* text);
+    API_FUNC elem_ptr::handle create_element(handle document, const char* name);
+    API_FUNC elem_ptr::handle create_text_node(handle document, const char* text);
 }
 
-namespace rml::element_ptr
+namespace rml::elem_ptr
 {
     API_FUNC rml::handle get_ptr(handle ptr);
     API_FUNC void destroy_ptr(handle ptr);
@@ -99,7 +99,7 @@ namespace rml::variant
     API_FUNC void* to_void_ptr(handle variant);
 }
 
-namespace rml::dictionary
+namespace rml::dict
 {
     API_FUNC int get_dict_size(handle dictionary);
     API_FUNC char* get_key(handle dictionary, int at);
@@ -114,7 +114,7 @@ namespace rml::ptr_array
     API_FUNC void destroy_arr(handle arr);
 }
 
-namespace rml::elem::api
+namespace rml::elem
 {
     API_FUNC bool add_class(handle element, const char* name);
     API_FUNC bool remove_class(handle element, const char* name);
@@ -155,7 +155,7 @@ namespace rml::elem::api
     API_FUNC bool remove_attribute(handle element, const char* name);
     API_FUNC bool has_attribute(handle element, const char* name);
     API_FUNC char* get_attribute(handle element, const char* name);
-    API_FUNC dictionary::handle get_attributes(handle element);
+    API_FUNC dict::handle get_attributes(handle element);
 
     API_FUNC float get_absolute_left(handle element);
     API_FUNC float get_absolute_top(handle element);

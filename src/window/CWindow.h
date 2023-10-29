@@ -22,11 +22,11 @@ namespace window
         std::unique_ptr<ui::CCoreBGFX> m_bgfx;
         core::CLogger m_logger{};
 
-        api::t_rml_event_handler m_event_handler;
-        api::t_generic_event_handler m_render_handler;
-        api::t_generic_event_handler m_update_handler;
-        api::t_generic_event_handler m_window_init_handler;
-        api::t_generic_event_handler m_render_init_handler;
+        app::t_rml_event_handler m_event_handler;
+        app::t_generic_event_handler m_render_handler;
+        app::t_generic_event_handler m_update_handler;
+        app::t_generic_event_handler m_window_init_handler;
+        app::t_generic_event_handler m_render_init_handler;
         
     public:
         CWindow(const Eigen::Vector4i& size);
@@ -37,11 +37,11 @@ namespace window
         void RunApi();
 
         bool SendEvent(Rml::Element* target, Rml::EventId id, const Rml::String& name, const Rml::Dictionary& parameters, bool interruptible);
-        void RegisterEventHandler(api::t_rml_event_handler handler) { m_event_handler = handler; };
-        void RegisterRenderEventHandler(api::t_generic_event_handler handler) { m_render_handler = handler; };
-        void RegisterUpdateEventHandler(api::t_generic_event_handler handler) { m_update_handler = handler; };
-        void RegisterWindowInitEventHandler(api::t_generic_event_handler handler) { m_window_init_handler = handler; };
-        void RegisterRenderInitEventHandler(api::t_generic_event_handler handler) { m_render_init_handler = handler; };
+        void RegisterEventHandler(app::t_rml_event_handler handler) { m_event_handler = handler; };
+        void RegisterRenderEventHandler(app::t_generic_event_handler handler) { m_render_handler = handler; };
+        void RegisterUpdateEventHandler(app::t_generic_event_handler handler) { m_update_handler = handler; };
+        void RegisterWindowInitEventHandler(app::t_generic_event_handler handler) { m_window_init_handler = handler; };
+        void RegisterRenderInitEventHandler(app::t_generic_event_handler handler) { m_render_init_handler = handler; };
 
         bool IsRunning() const { return m_running; }
         ui::CCoreBGFX* GetBGFX() const { return m_bgfx.get(); }

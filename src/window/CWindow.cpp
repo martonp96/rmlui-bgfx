@@ -97,7 +97,7 @@ void CWindow::RunApi()
 bool CWindow::SendEvent(Rml::Element* target, Rml::EventId id, const Rml::String& name, const Rml::Dictionary& parameters, bool interruptible)
 {
     if (m_event_handler)
-        return m_event_handler(reinterpret_cast<rml::handle>(target), (int)id, name.c_str(), reinterpret_cast<rml::dictionary::handle>((void*)&parameters), interruptible);
+        return m_event_handler(reinterpret_cast<rml::handle>(target), (int)id, name.c_str(), reinterpret_cast<rml::dict::handle>((void*)&parameters), interruptible);
 
     return true;
 }

@@ -47,6 +47,7 @@ bool ui::CFileInterface::Seek(Rml::FileHandle file, long offset, int origin)
         break;
     }
     std_file->seekg(offset, static_cast<std::ios_base::seekdir>(origin));
+    return true;
 }
 
 size_t ui::CFileInterface::Tell(Rml::FileHandle file)
