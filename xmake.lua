@@ -102,6 +102,9 @@ target("rmlui-bgfx-test-node")
     set_extension(".node")
     add_files("test_node/main.cpp")
     add_deps("rmlui-bgfx")
+    if is_host("macosx") then 
+        add_ldflags("-undefined dynamic_lookup")
+    end
     add_packages("node-api-headers", "node-addon-api")
     add_defines("BUILD_SHARED")
     after_build(function (target)
