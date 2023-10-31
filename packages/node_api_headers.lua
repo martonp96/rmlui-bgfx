@@ -1,4 +1,4 @@
-package("node-api-headers")
+package("node_api_headers")
     set_homepage("https://nodejs.org")
     set_license("MIT")
 

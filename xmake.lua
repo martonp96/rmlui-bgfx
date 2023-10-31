@@ -7,7 +7,7 @@ set_runtimes(is_mode("debug") and "MTd" or "MT")
 set_symbols("debug")
 
 add_rules("plugin.vsxmake.autoupdate")
-add_requires("rmlui_custom", "eigen", "stb", "node-api-headers", "node-addon-api")
+add_requires("rmlui_custom", "eigen", "stb", "node_api_headers", "node_addon_api")
 add_requires("libsdl", { configs = { wayland = true, x11 = false, with_x = false } })
 if is_host("linux") then 
     add_requires("bgfx_custom", "spdlog", { configs = { cxflags = "-fPIC" } })
@@ -38,6 +38,9 @@ target("rmlui-bgfx")
     set_kind("static")
     set_pcxxheader("src/pch.h")
     add_files("src/**.cpp", shadersPath .. "*.bin")
+    if is_host("macosx") then
+        add_files("src/**.mm")
+    end
     add_headerfiles("src/**.h", "include/**.h")
     add_includedirs("src/", "include/", "src/api/", { public = true })
     add_packages("bgfx_custom", "rmlui_custom", "eigen", "stb", "libsdl", "spdlog")
@@ -105,7 +108,7 @@ target("rmlui-bgfx-test-node")
     if is_host("macosx") then 
         add_ldflags("-undefined dynamic_lookup")
     end
-    add_packages("node-api-headers", "node-addon-api")
+    add_packages("node_api_headers", "node_addon_api")
     add_defines("BUILD_SHARED")
     after_build(function (target)
         os.cp(path.join(target:scriptdir(), "data/rml/test/*"), path.join(target:scriptdir(), target:targetdir()))

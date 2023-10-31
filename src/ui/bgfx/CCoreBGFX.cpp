@@ -1,6 +1,8 @@
 #include "CCoreBGFX.h"
 #include "window/CWindow.h"
 
+void* workaround_cbSetupMetalLayer(void* wnd);
+
 ui::CCoreBGFX::CCoreBGFX(window::CWindow* window, const Eigen::Vector2i& size)
 {
     SDL_SysWMinfo wmi;
@@ -23,7 +25,7 @@ ui::CCoreBGFX::CCoreBGFX(window::CWindow* window, const Eigen::Vector2i& size)
 #elif BX_PLATFORM_OSX
     init.type = bgfx::RendererType::Metal;
     init.platformData.ndt = nullptr;
-    init.platformData.nwh = wmi.info.cocoa.window;
+    init.platformData.nwh = workaround_cbSetupMetalLayer(wmi.info.cocoa.window);
     SPDLOG_DEBUG("Using MacOS platform");
 #elif BX_PLATFORM_WINDOWS
     init.type = bgfx::RendererType::Direct3D11;

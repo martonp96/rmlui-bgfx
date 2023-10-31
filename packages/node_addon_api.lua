@@ -1,4 +1,4 @@
-package("node-addon-api")
+package("node_addon_api")
     set_homepage("https://nodejs.org")
     set_license("MIT")
 
