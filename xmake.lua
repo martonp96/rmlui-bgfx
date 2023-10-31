@@ -36,10 +36,11 @@ target("rmlui-bgfx")
     set_plat(os.host())
     set_default(false)
     set_kind("static")
-    set_pcxxheader("src/pch.h")
     add_files("src/**.cpp", shadersPath .. "*.bin")
     if is_host("macosx") then
         add_files("src/**.mm")
+    else
+        set_pcxxheader("src/pch.h")
     end
     add_headerfiles("src/**.h", "include/**.h")
     add_includedirs("src/", "include/", "src/api/", { public = true })
