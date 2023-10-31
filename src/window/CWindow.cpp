@@ -3,9 +3,6 @@
 
 using namespace window;
 
-static bx::DefaultAllocator g_allocator;
-static bx::SpScUnboundedQueue g_api_thread_events(&g_allocator);
-
 CWindow::CWindow(const Eigen::Vector4i& size)
 {
     m_wnd_pos = { size[0], size[1] };
@@ -34,15 +31,14 @@ CWindow::CWindow(const Eigen::Vector4i& size)
     m_update_handler = nullptr;
 
     m_ready = false;
+    m_bgfx = std::make_unique<ui::CCoreBGFX>(this, m_wnd_size);
+    m_ready = true;
 }
 
 CWindow::~CWindow()
 {
     m_running = false;
 
-    while (bgfx::RenderFrame::NoContext != bgfx::renderFrame()) {}
-
-    m_api_thread.shutdown();
     m_bgfx.reset();
 
     SDL_DestroyWindow(m_window);
@@ -52,45 +48,18 @@ CWindow::~CWindow()
 void CWindow::Start()
 {
     m_running = true;
-    bgfx::renderFrame();
-    m_api_thread.init(ApiThread, this);
+
+    if (m_render_init_handler)
+        m_render_init_handler();
 }
 
 void CWindow::RunApi()
 {
-    m_bgfx = std::make_unique<ui::CCoreBGFX>(this, m_wnd_size);
-    m_ready = true;
 
-    if (m_render_init_handler)
-        m_render_init_handler();
 
     while (m_running)
     {
-        while (auto ev = (CEvent*)g_api_thread_events.pop())
-        {
-            switch (ev->m_type)
-            {
-            case SDL_QUIT:
-                m_running = false;
-                m_bgfx.reset();
-                return;
-            case SDL_WINDOWEVENT_RESIZED: {
-                const auto event = (CEventResize*)ev;
-                m_wnd_size = { event->m_width, event->m_height };
-                m_bgfx->Resize(m_wnd_size);
-                break;
-            }
-            default:
-                m_bgfx->OnEvent(ev);
-                break;
-            }
-            delete ev;
-        }
 
-        if (m_render_handler)
-            m_render_handler();
-
-        m_bgfx->Render();
     }
 }
 
@@ -116,10 +85,11 @@ void CWindow::Loop()
     SDL_Event event;
     while (SDL_PollEvent(&event) && m_running)
     {
+        CEvent* window_event = nullptr;
         switch (event.type)
         {
         case SDL_QUIT:
-            g_api_thread_events.push(new CEvent(SDL_QUIT));
+            window_event = new CEvent(SDL_QUIT);
             break;
 
         case SDL_WINDOWEVENT:
@@ -129,44 +99,61 @@ void CWindow::Loop()
             {
             case SDL_WINDOWEVENT_RESIZED:
             case SDL_WINDOWEVENT_SIZE_CHANGED:
-                g_api_thread_events.push(new CEventResize(ev.data1, ev.data2));
+                window_event = new CEventResize(ev.data1, ev.data2);
+                m_wnd_size = { ev.data1, ev.data2 };
+                m_bgfx->Resize(m_wnd_size);
                 break;
             case SDL_WINDOWEVENT_CLOSE:
-                g_api_thread_events.push(new CEvent(SDL_QUIT));
+                window_event = new CEvent(SDL_QUIT);
                 break;
             case SDL_WINDOWEVENT_LEAVE:
-                g_api_thread_events.push(new CEvent(SDL_WINDOWEVENT_LEAVE));
+                window_event = new CEvent(SDL_WINDOWEVENT_LEAVE);
                 break;
             }
             break;
         }
         case SDL_MOUSEMOTION:
-            g_api_thread_events.push(new CEventMouseMotion(event.motion.x, event.motion.y, SDL_GetModState()));
+            window_event = new CEventMouseMotion(event.motion.x, event.motion.y, SDL_GetModState());
             break;
         case SDL_MOUSEBUTTONDOWN:
-            g_api_thread_events.push(new CEventMouseButton(true, event.button.button, SDL_GetModState()));
+            window_event = new CEventMouseButton(true, event.button.button, SDL_GetModState());
             SDL_CaptureMouse(SDL_TRUE);
             break;
         case SDL_MOUSEBUTTONUP:
             SDL_CaptureMouse(SDL_FALSE);
-            g_api_thread_events.push(new CEventMouseButton(false, event.button.button, SDL_GetModState()));
+            window_event = new CEventMouseButton(false, event.button.button, SDL_GetModState());
             break;
         case SDL_MOUSEWHEEL:
-            g_api_thread_events.push(new CEventMouseWheel(float(-event.wheel.y), SDL_GetModState()));
+            window_event = new CEventMouseWheel(float(-event.wheel.y), SDL_GetModState());
             break;
         case SDL_KEYDOWN:
-            g_api_thread_events.push(new CEventKey(true, event.key.keysym.sym, SDL_GetModState()));
+            window_event = new CEventKey(true, event.key.keysym.sym, SDL_GetModState());
             break;
         case SDL_KEYUP:
-            g_api_thread_events.push(new CEventKey(false, event.key.keysym.sym, SDL_GetModState()));
+            window_event = new CEventKey(false, event.key.keysym.sym, SDL_GetModState());
             break;
         case SDL_TEXTINPUT:
-            g_api_thread_events.push(new CEventTextInput(event.text.text));
+            window_event = new CEventTextInput(event.text.text);
             break;
+        }
+
+        if (window_event)
+        {
+            m_bgfx->OnEvent(window_event);
+
+            if (window_event->m_type == SDL_QUIT)
+            {
+                m_running = false;
+                m_bgfx.reset();
+                return;
+            }
+
+            delete window_event;
         }
     }
     
-    if (!m_running) return;
+    if (m_render_handler)
+        m_render_handler();
 
-    bgfx::renderFrame();
+    m_bgfx->Render();
 }
