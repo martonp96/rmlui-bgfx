@@ -11,8 +11,6 @@
 #include <bgfx/platform.h>
 #include <bx/math.h>
 #include <bx/timer.h>
-#include <bx/thread.h>
-#include <bx/spscqueue.h>
 
 //eigen
 #include <Eigen/Eigen>

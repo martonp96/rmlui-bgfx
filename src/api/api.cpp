@@ -4,792 +4,752 @@
 
 using namespace window;
 
-app::handle app::create(int width, int height)
+static std::unordered_map<Rml::Element*, ElemBase*> g_element_map;
+
+ElemBase* api::GetOrCreateElement(Rml::Element* rml_element)
 {
-	return reinterpret_cast<handle>(new CWindow(Eigen::Vector4i{ 200, 200, width, height }));;
+	if (g_element_map.find(rml_element) != g_element_map.end())
+		return g_element_map[rml_element];
+
+	const auto elem = new Elem(rml_element);
+	g_element_map[rml_element] = elem;
+	return elem;
 }
 
-void app::destroy(app::handle app)
+ElemBase* api::GetOrCreateElement(Rml::ElementPtr* rml_element_ptr)
 {
-	delete app;
+	const auto rml_element = rml_element_ptr->get();
+	return api::GetOrCreateElement(rml_element);
 }
 
-void app::start(handle app)
+AppBase* Core::CreateApp(int width, int height)
 {
-	reinterpret_cast<CWindow*>(app)->Start();
+	return new App(width, height);
 }
 
-bool app::is_running(handle app)
+App::App(int width, int height)
 {
-	return reinterpret_cast<CWindow*>(app)->IsRunning();
+	m_wnd = new CWindow(Eigen::Vector4i{ 200, 200, width, height });;
 }
 
-bool app::is_ready(handle app)
+void App::Destroy()
 {
-	return reinterpret_cast<CWindow*>(app)->IsReady();
+	delete m_wnd;
 }
 
-void app::run_loop(handle app)
+void App::Start()
 {
-	reinterpret_cast<CWindow*>(app)->Loop();
+	m_wnd->Start();
 }
 
-rml::handle app::create_document(app::handle app, const char* rml)
+bool App::IsRunning()
 {
-	const auto doc = reinterpret_cast<CWindow*>(app)->GetBGFX()->GetRML()->CreateDocumentFromMemory(rml);
-	return reinterpret_cast<rml::handle>(doc);
+	return m_wnd->IsRunning();
 }
 
-rml::handle app::load_document(app::handle app, const char* path)
+bool App::IsReady()
 {
-	const auto doc = reinterpret_cast<CWindow*>(app)->GetBGFX()->GetRML()->CreateDocument(path);
-	return reinterpret_cast<rml::handle>(doc);
+	return m_wnd->IsReady();
 }
 
-rml::handle app::get_document(app::handle app)
+void App::RunLoop()
 {
-	const auto doc = reinterpret_cast<CWindow*>(app)->GetBGFX()->GetRML()->GetDocument();
-	return reinterpret_cast<rml::handle>(doc);
+	m_wnd->Loop();
 }
 
-void app::register_event_handler(app::handle app, t_rml_event_handler handler)
+DocBase* App::CreateDocument(std::string rml)
 {
-	const auto wnd = reinterpret_cast<CWindow*>(app);
+	const auto doc = m_wnd->GetBGFX()->GetRML()->CreateDocumentFromMemory(rml);
+	return new Doc(doc);
+}
+
+DocBase* App::LoadDocument(std::string path)
+{
+	const auto doc = m_wnd->GetBGFX()->GetRML()->CreateDocument(path);
+	return new Doc(doc);
+}
+
+DocBase* App::GetDocument()
+{
+	const auto doc = m_wnd->GetBGFX()->GetRML()->GetDocument();
+	return new Doc(doc);
+}
+
+void App::RegisterRmlEventHandler(const t_rml_event_handler& handler)
+{
+	const auto wnd = m_wnd;
 	wnd->RegisterEventHandler(handler);
 }
 
-void app::register_render_event_handler(app::handle app, t_generic_event_handler handler)
+void App::RegisterRenderEventHandler(const t_generic_event_handler& handler)
 {
-	const auto wnd = reinterpret_cast<CWindow*>(app);
+	const auto wnd = m_wnd;
 	wnd->RegisterRenderEventHandler(handler);
 }
 
-void app::register_update_event_handler(app::handle app, t_generic_event_handler handler)
+void App::RegisterUpdateEventHandler(const t_generic_event_handler& handler)
 {
-	const auto wnd = reinterpret_cast<CWindow*>(app);
+	const auto wnd = m_wnd;
 	wnd->RegisterUpdateEventHandler(handler);
 }
 
-void app::register_window_init_event_handler(app::handle app, t_generic_event_handler handler)
+void App::RegisterWindowInitEventHandler(const t_generic_event_handler& handler)
 {
-	const auto wnd = reinterpret_cast<CWindow*>(app);
+	const auto wnd = m_wnd;
 	wnd->RegisterWindowInitEventHandler(handler);
 }
 
-void app::register_render_init_event_handler(app::handle app, t_generic_event_handler handler)
+void App::RegisterRenderInitEventHandler(const t_generic_event_handler& handler)
 {
-	const auto wnd = reinterpret_cast<CWindow*>(app);
+	const auto wnd = m_wnd;
 	wnd->RegisterRenderInitEventHandler(handler);
 }
 
-void rml::doc::set_visible(handle document, bool toggle)
+void App::LoadFontFace(std::string path, bool is_default)
 {
-	const auto doc = reinterpret_cast<Rml::ElementDocument*>(document);
-	toggle ? doc->Show() : doc->Hide();
+	Rml::LoadFontFace(path, is_default);
 }
 
-void rml::doc::update(handle document)
+void Doc::SetVisible(bool toggle)
 {
-	reinterpret_cast<Rml::ElementDocument*>(document)->UpdateDocument();
+	toggle ? static_cast<Rml::ElementDocument*>(element)->Show() : static_cast<Rml::ElementDocument*>(element)->Hide();
 }
 
-rml::handle rml::doc::get_body(handle document)
+void Doc::Update()
 {
-	return document;
+	static_cast<Rml::ElementDocument*>(element)->UpdateDocument();
 }
 
-rml::elem_ptr::handle rml::doc::create_element(handle document, const char* name)
+DocBase* Doc::GetBody()
 {
-	const auto doc = reinterpret_cast<Rml::ElementDocument*>(document);
-	return reinterpret_cast<rml::elem_ptr::handle>(new Rml::ElementPtr(doc->CreateElement(name)));
+	return this;
 }
 
-rml::elem_ptr::handle rml::doc::create_text_node(handle document, const char* text)
+ElemBase* Doc::CreateElement(std::string name)
 {
-	const auto doc = reinterpret_cast<Rml::ElementDocument*>(document);
-	return reinterpret_cast<rml::elem_ptr::handle>(new Rml::ElementPtr(doc->CreateTextNode(text)));
+	return api::GetOrCreateElement(new Rml::ElementPtr(static_cast<Rml::ElementDocument*>(element)->CreateElement(name)));
 }
 
-bool rml::elem::add_class(handle element, const char* name)
+ElemBase* Doc::CreateTextNode(std::string text)
 {
-	const auto elem = reinterpret_cast<Rml::Element*>(element);
+	return api::GetOrCreateElement(new Rml::ElementPtr(static_cast<Rml::ElementDocument*>(element)->CreateTextNode(text)));
+}
+
+t_api_variant api::FromRmlVariant(const Rml::Variant& rml_variant)
+{
+	t_api_variant std_variant;
+	Rml::Variant::Type type = rml_variant.GetType();
+	switch (type)
+	{
+	case Rml::Variant::Type::BOOL:
+		std_variant = rml_variant.Get<bool>();
+		break;
+	case Rml::Variant::Type::BYTE:
+	case Rml::Variant::Type::UINT:
+	case Rml::Variant::Type::UINT64:
+		std_variant = rml_variant.Get<uint64_t>();
+		break;
+	case Rml::Variant::Type::CHAR:
+	case Rml::Variant::Type::INT:
+	case Rml::Variant::Type::INT64:
+		std_variant = rml_variant.Get<int64_t>();
+		break;
+	case Rml::Variant::Type::FLOAT:
+	case Rml::Variant::Type::DOUBLE:
+		std_variant = rml_variant.Get<double>();
+		break;
+	case Rml::Variant::Type::STRING:
+		std_variant = rml_variant.Get<Rml::String>();
+		SPDLOG_INFO("variant string {}", rml_variant.Get<Rml::String>());
+		break;
+	case Rml::Variant::Type::VECTOR2:
+	{
+		auto vec = rml_variant.Get<Rml::Vector2f>();
+		std_variant = vec2{ vec.x, vec.y };
+		break;
+	}
+	case Rml::Variant::Type::VECTOR3:
+	{
+		auto vec = rml_variant.Get<Rml::Vector3f>();
+		std_variant = vec3{ vec.x, vec.y, vec.z };
+		break;
+	}
+	case Rml::Variant::Type::VECTOR4:
+	{
+		auto vec = rml_variant.Get<Rml::Vector4f>();
+		std_variant = vec4{ vec.x, vec.y, vec.z, vec.w };
+		break;
+	}
+	case Rml::Variant::Type::COLOURF:
+	{
+		auto vec = rml_variant.Get<Rml::Colourf>();
+		std_variant = fcolor{ vec.red, vec.green, vec.blue, vec.alpha };
+		break;
+	}
+	case Rml::Variant::Type::COLOURB:
+	{
+		auto vec = rml_variant.Get<Rml::Colourb>();
+		std_variant = color{ vec.red, vec.green, vec.blue, vec.alpha };
+		break;
+	}
+	case Rml::Variant::Type::NONE:
+		SPDLOG_ERROR("Received none variant type in rmlui event: {}", (int)type);
+		std_variant = false;
+		break;
+	case Rml::Variant::Type::VOIDPTR:
+		std_variant = static_cast<ElemBase*>(rml_variant.Get<void*>());
+		break;
+	default:
+		SPDLOG_ERROR("Received unhandled variant type in rmlui event: {}", (int)type);
+		break;
+	}
+	return std_variant;
+}
+
+Elem::Elem(Rml::Element* elem) : element(elem)
+{
+
+}
+
+/*
+Elem::Elem(Rml::ElementPtr* elem) : element(elem->get()), element_ptr(elem)
+{
+
+}
+*/
+
+bool Elem::AddClass(std::string name)
+{
+	const auto elem = element;
 	if (elem->IsClassSet(name)) return false;
 	elem->SetClass(name, true);
 	return true;
 }
 
-bool rml::elem::remove_class(handle element, const char* name)
+bool Elem::RemoveClass(std::string name)
 {
-	const auto elem = reinterpret_cast<Rml::Element*>(element);
+	const auto elem = element;
 	if (!elem->IsClassSet(name)) return false;
 	elem->SetClass(name, false);
 	return true;
 }
 
-bool rml::elem::has_class(handle element, const char* name)
+bool Elem::HasClass(std::string name)
 {
-	const auto elem = reinterpret_cast<Rml::Element*>(element);
+	const auto elem = element;
 	return elem->IsClassSet(name);
 }
 
-char* rml::elem::get_class_list(handle element)
+std::string Elem::GetClassList()
 {
-	const auto elem = reinterpret_cast<Rml::Element*>(element);
+	const auto elem = element;
 	Rml::String classListStr = elem->GetClassNames();
-	return (char*)elem->GetClassNames().c_str();
+	return elem->GetClassNames();
 }
 
-bool rml::elem::add_pseudo_class(handle element, const char* name)
+bool Elem::AddPseudoClass(std::string name)
 {
-	const auto elem = reinterpret_cast<Rml::Element*>(element);
+	const auto elem = element;
 	if (elem->IsPseudoClassSet(name)) return false;
 	elem->SetPseudoClass(name, true);
 	return true;
 }
 
-bool rml::elem::remove_pseudo_class(handle element, const char* name)
+bool Elem::RemovePseudoClass(std::string name)
 {
-	const auto elem = reinterpret_cast<Rml::Element*>(element);
+	const auto elem = element;
 	if (!elem->IsPseudoClassSet(name)) return false;
 	elem->SetPseudoClass(name, false);
 	return true;
 }
 
-bool rml::elem::has_pseudo_class(handle element, const char* name)
+bool Elem::HasPseudoClass(std::string name)
 {
-	const auto elem = reinterpret_cast<Rml::Element*>(element);
+	const auto elem = element;
 	return elem->IsPseudoClassSet(name);
 }
 
-rml::ptr_array::handle rml::elem::get_pseudo_class_list(handle element)
+std::vector<std::string> Elem::GetPseudoClassList()
 {
-	const auto elem = reinterpret_cast<Rml::Element*>(element);
+	const auto elem = element;
 	auto classList = elem->GetActivePseudoClasses();
 
-	auto vec = new std::vector<void*>();
-	
+	std::vector<std::string> vec;
+
 	if (classList.size())
 	{
 		for (auto& name : classList)
-			vec->push_back((void*)name.c_str());
+			vec.push_back(name);
 	}
 
-	return reinterpret_cast<ptr_array::handle>(vec);
+	return vec;
 }
 
-void rml::elem::set_offset(handle element, handle offset_parent, float offset_x, float offset_y, bool fixed)
+void Elem::SetOffset(ElemBase* offset_parent, float offset_x, float offset_y, bool fixed)
 {
-	const auto elem = reinterpret_cast<Rml::Element*>(element);
+	const auto elem = element;
 	const auto offset_elem = reinterpret_cast<Rml::Element*>(offset_parent);
 	elem->SetOffset({ offset_x, offset_y }, offset_elem, fixed);
 }
 
-float rml::elem::get_relative_offset_x(handle element)
+t_api_variant Elem::GetRelativeOffset()
 {
-	const auto elem = reinterpret_cast<Rml::Element*>(element);
-	return elem->GetRelativeOffset().x;
+	const auto elem = element;
+	const auto offs = elem->GetRelativeOffset();
+	return vec2{ offs.x, offs.y };
 }
 
-float rml::elem::get_relative_offset_y(handle element)
+t_api_variant Elem::GetAbsoluteOffset()
 {
-	const auto elem = reinterpret_cast<Rml::Element*>(element);
-	return elem->GetRelativeOffset().y;
+	const auto elem = element;
+	const auto offs = elem->GetAbsoluteOffset();
+	return vec2{ offs.x, offs.y };
 }
 
-float rml::elem::get_baseline(handle element)
+float Elem::GetBaseline()
 {
-	const auto elem = reinterpret_cast<Rml::Element*>(element);
+	const auto elem = element;
 	return elem->GetBaseline();
 }
 
-float rml::elem::get_z_index(handle element)
+float Elem::GetZIndex()
 {
-	const auto elem = reinterpret_cast<Rml::Element*>(element);
+	const auto elem = element;
 	return elem->GetZIndex();
 }
 
-bool rml::elem::is_point_within_element(handle element, float point_x, float point_y)
+bool Elem::IsPointWithinElement(float point_x, float point_y)
 {
-	const auto elem = reinterpret_cast<Rml::Element*>(element);
+	const auto elem = element;
 	return elem->IsPointWithinElement({ point_x, point_y });
 }
 
-bool rml::elem::set_property(handle element, const char* name, const char* value)
+bool Elem::SetProperty(std::string name, std::string value)
 {
-	const auto elem = reinterpret_cast<Rml::Element*>(element);
+	const auto elem = element;
 	return elem->SetProperty(name, value);
 }
 
-bool rml::elem::remove_property(handle element, const char* name)
+bool Elem::RemoveProperty(std::string name)
 {
-	const auto elem = reinterpret_cast<Rml::Element*>(element);
+	const auto elem = element;
 	if (!elem->GetProperty(name))return false;
 	elem->RemoveProperty(name);
 	return true;
 }
 
-bool rml::elem::has_property(handle element, const char* name)
+bool Elem::HasProperty(std::string name)
 {
-	const auto elem = reinterpret_cast<Rml::Element*>(element);
+	const auto elem = element;
 	return elem->GetProperty(name) != nullptr;
 }
 
-bool rml::elem::has_local_property(handle element, const char* name)
+bool Elem::HasLocalProperty(std::string name)
 {
-	const auto elem = reinterpret_cast<Rml::Element*>(element);
+	const auto elem = element;
 	return elem->GetLocalProperty(name) != nullptr;
 }
 
-char* rml::elem::get_property(handle element, const char* name)
+std::string Elem::GetProperty(std::string name)
 {
-	const auto elem = reinterpret_cast<Rml::Element*>(element);
+	const auto elem = element;
 	const auto prop = elem->GetProperty(name);
 
-	if (!prop) return nullptr;
-	return (char*)prop->ToString().c_str();
+	if (!prop) return "";
+	return prop->ToString();
 }
 
-char* rml::elem::get_local_property(handle element, const char* name)
+std::string Elem::GetLocalProperty(std::string name)
 {
-	const auto elem = reinterpret_cast<Rml::Element*>(element);
+	const auto elem = element;
 	const auto prop = elem->GetLocalProperty(name);
 
-	if (!prop) return nullptr;
-	return (char*)prop->ToString().c_str();
+	if (!prop) return "";
+	return prop->ToString();
 }
 
-float rml::elem::get_property_absolute_value(handle element, const char* name)
+float Elem::GetPropertyAbsoluteValue(std::string name)
 {
-	const auto elem = reinterpret_cast<Rml::Element*>(element);
+	const auto elem = element;
 	if (elem->GetProperty(name) == nullptr) return 0.f;
 	return elem->ResolveNumericProperty(name);
 }
 
-float rml::elem::get_containing_block_x(handle element)
+t_api_variant Elem::GetContainingBlock()
 {
-	const auto elem = reinterpret_cast<Rml::Element*>(element);
-	return elem->GetContainingBlock().x;
+	const auto elem = element;
+	const auto offs = elem->GetContainingBlock();
+	return vec2{ offs.x, offs.y };
 }
 
-float rml::elem::get_containing_block_y(handle element)
+ElemBase* Elem::GetFocusedElement()
 {
-	const auto elem = reinterpret_cast<Rml::Element*>(element);
-	return elem->GetContainingBlock().y;
+	const auto elem = element;
+	return api::GetOrCreateElement(elem->GetFocusLeafNode());
 }
 
-rml::handle rml::elem::get_focused_element(handle element)
+std::string Elem::GetTagName()
 {
-	const auto elem = reinterpret_cast<Rml::Element*>(element);
-	return reinterpret_cast<rml::handle>(elem->GetFocusLeafNode());
+	const auto elem = element;
+	return elem->GetTagName();
 }
 
-char* rml::elem::get_tag_name(handle element)
+std::string Elem::GetId()
 {
-	const auto elem = reinterpret_cast<Rml::Element*>(element);
-	return (char*)elem->GetTagName().c_str();
+	const auto elem = element;
+	return elem->GetId();
 }
 
-char* rml::elem::get_id(handle element)
+void Elem::SetId(std::string id)
 {
-	const auto elem = reinterpret_cast<Rml::Element*>(element);
-	return (char*)elem->GetId().c_str();
-}
-
-void rml::elem::set_id(handle element, const char* id)
-{
-	const auto elem = reinterpret_cast<Rml::Element*>(element);
+	const auto elem = element;
 	elem->SetId(id);
 }
 
-void rml::elem::set_attribute(handle element, const char* name, const char* value)
+void Elem::SetAttribute(std::string name, std::string value)
 {
-	const auto elem = reinterpret_cast<Rml::Element*>(element);
+	const auto elem = element;
 	elem->SetAttribute(name, value);
+	SPDLOG_INFO("Setattribute {} {}", name, value);
 }
 
-bool rml::elem::remove_attribute(handle element, const char* name)
+bool Elem::RemoveAttribute(std::string name)
 {
-	const auto elem = reinterpret_cast<Rml::Element*>(element);
+	const auto elem = element;
 	if (!elem->HasAttribute(name)) return false;
 	elem->RemoveAttribute(name);
 	return true;
 }
 
-bool rml::elem::has_attribute(handle element, const char* name)
+bool Elem::HasAttribute(std::string name)
 {
-	const auto elem = reinterpret_cast<Rml::Element*>(element);
+	const auto elem = element;
 	return elem->HasAttribute(name);
 }
 
-char* rml::elem::get_attribute(handle element, const char* name)
+std::string Elem::GetAttribute(std::string name)
 {
-	const auto elem = reinterpret_cast<Rml::Element*>(element);
-	return (char*)elem->GetAttribute(name);
+	const auto elem = element;
+	return elem->GetAttribute(name)->Get<std::string>();
 }
 
-rml::dict::handle rml::elem::get_attributes(handle element)
+std::unordered_map<std::string, t_api_variant> Elem::GetAttributes()
 {
-	const auto elem = reinterpret_cast<Rml::Element*>(element);
+	const auto elem = element;
 	const auto& attributes = elem->GetAttributes();
-	return reinterpret_cast<dict::handle>((void*)&attributes);
+
+	std::unordered_map<std::string, t_api_variant> map;
+	for (auto& attr : attributes)
+	{
+		map[attr.first] = api::FromRmlVariant(attr.second);
+	}
+	return map;
 }
 
-float rml::elem::get_absolute_left(handle element)
+float Elem::GetAbsoluteLeft()
 {
-	const auto elem = reinterpret_cast<Rml::Element*>(element);
+	const auto elem = element;
 	return elem->GetAbsoluteLeft();
 }
 
-float rml::elem::get_absolute_top(handle element)
+float Elem::GetAbsoluteTop()
 {
-	const auto elem = reinterpret_cast<Rml::Element*>(element);
+	const auto elem = element;
 	return elem->GetAbsoluteTop();
 }
 
-float rml::elem::get_client_left(handle element)
+float Elem::GetClientLeft()
 {
-	const auto elem = reinterpret_cast<Rml::Element*>(element);
+	const auto elem = element;
 	return elem->GetClientLeft();
 }
 
-float rml::elem::get_client_top(handle element)
+float Elem::GetClientTop()
 {
-	const auto elem = reinterpret_cast<Rml::Element*>(element);
+	const auto elem = element;
 	return elem->GetClientTop();
 }
 
-float rml::elem::get_client_width(handle element)
+float Elem::GetClientWidth()
 {
-	const auto elem = reinterpret_cast<Rml::Element*>(element);
+	const auto elem = element;
 	return elem->GetClientWidth();
 }
 
-float rml::elem::get_client_height(handle element)
+float Elem::GetClientHeight()
 {
-	const auto elem = reinterpret_cast<Rml::Element*>(element);
+	const auto elem = element;
 	return elem->GetClientHeight();
 }
 
-rml::handle rml::elem::get_offset_parent(handle element)
+ElemBase* Elem::GetOffsetParent()
 {
-	const auto elem = reinterpret_cast<Rml::Element*>(element);
-	return reinterpret_cast<handle>(elem->GetOffsetParent());
+	const auto elem = element;
+	return api::GetOrCreateElement(elem->GetOffsetParent());
 }
 
-float rml::elem::get_offset_left(handle element)
+float Elem::GetOffsetLeft()
 {
-	const auto elem = reinterpret_cast<Rml::Element*>(element);
+	const auto elem = element;
 	return elem->GetOffsetLeft();
 }
 
-float rml::elem::get_offset_top(handle element)
+float Elem::GetOffsetTop()
 {
-	const auto elem = reinterpret_cast<Rml::Element*>(element);
+	const auto elem = element;
 	return elem->GetOffsetTop();
 }
 
-float rml::elem::get_offset_width(handle element)
+float Elem::GetOffsetWidth()
 {
-	const auto elem = reinterpret_cast<Rml::Element*>(element);
+	const auto elem = element;
 	return elem->GetOffsetWidth();
 }
 
-float rml::elem::get_offset_height(handle element)
+float Elem::GetOffsetHeight()
 {
-	const auto elem = reinterpret_cast<Rml::Element*>(element);
+	const auto elem = element;
 	return elem->GetOffsetHeight();
 }
 
-float rml::elem::get_scroll_left(handle element)
+float Elem::GetScrollLeft()
 {
-	const auto elem = reinterpret_cast<Rml::Element*>(element);
+	const auto elem = element;
 	return elem->GetScrollLeft();
 }
 
-void rml::elem::set_scroll_left(handle element, float value)
+void Elem::SetScrollLeft(float value)
 {
-	const auto elem = reinterpret_cast<Rml::Element*>(element);
+	const auto elem = element;
 	elem->SetScrollLeft(value);
 }
 
-float rml::elem::get_scroll_top(handle element)
+float Elem::GetScrollTop()
 {
-	const auto elem = reinterpret_cast<Rml::Element*>(element);
+	const auto elem = element;
 	return elem->GetScrollTop();
 }
 
-void rml::elem::set_scroll_top(handle element, float value)
+void Elem::SetScrollTop(float value)
 {
-	const auto elem = reinterpret_cast<Rml::Element*>(element);
+	const auto elem = element;
 	elem->SetScrollTop(value);
 }
 
-float rml::elem::get_scroll_width(handle element)
+float Elem::GetScrollWidth()
 {
-	const auto elem = reinterpret_cast<Rml::Element*>(element);
+	const auto elem = element;
 	return elem->GetScrollWidth();
 }
 
-float rml::elem::get_scroll_height(handle element)
+float Elem::GetScrollHeight()
 {
-	const auto elem = reinterpret_cast<Rml::Element*>(element);
+	const auto elem = element;
 	return elem->GetScrollHeight();
 }
 
-bool rml::elem::is_visible(handle element)
+bool Elem::IsVisible()
 {
-	const auto elem = reinterpret_cast<Rml::Element*>(element);
+	const auto elem = element;
 	return elem->IsVisible();
 }
 
-rml::handle rml::elem::get_parent(handle element)
+ElemBase* Elem::GetParent()
 {
-	const auto elem = reinterpret_cast<Rml::Element*>(element);
-	return reinterpret_cast<handle>(elem->GetParentNode());
+	const auto elem = element;
+	return api::GetOrCreateElement(elem->GetParentNode());
 }
 
-rml::handle rml::elem::get_closest(handle element, const char* selectors)
+ElemBase* Elem::GetClosest(std::string selectors)
 {
-	const auto elem = reinterpret_cast<Rml::Element*>(element);
-	return reinterpret_cast<handle>(elem->Closest(selectors));
+	const auto elem = element;
+	return api::GetOrCreateElement(elem->Closest(selectors));
 }
 
-rml::handle rml::elem::get_next_sibling(handle element)
+ElemBase* Elem::GetNextSibling()
 {
-	const auto elem = reinterpret_cast<Rml::Element*>(element);
-	return reinterpret_cast<handle>(elem->GetNextSibling());
+	const auto elem = element;
+	return api::GetOrCreateElement(elem->GetNextSibling());
 }
 
-rml::handle rml::elem::get_previous_sibling(handle element)
+ElemBase* Elem::GetPreviousSibling()
 {
-	const auto elem = reinterpret_cast<Rml::Element*>(element);
-	return reinterpret_cast<handle>(elem->GetPreviousSibling());
+	const auto elem = element;
+	return api::GetOrCreateElement(elem->GetPreviousSibling());
 }
 
-rml::handle rml::elem::get_first_child(handle element)
+ElemBase* Elem::GetFirstChild()
 {
-	const auto elem = reinterpret_cast<Rml::Element*>(element);
-	return reinterpret_cast<handle>(elem->GetFirstChild());
+	const auto elem = element;
+	return api::GetOrCreateElement(elem->GetFirstChild());
 }
 
-rml::handle rml::elem::get_last_child(handle element)
+ElemBase* Elem::GetLastChild()
 {
-	const auto elem = reinterpret_cast<Rml::Element*>(element);
-	return reinterpret_cast<handle>(elem->GetLastChild());
+	const auto elem = element;
+	return api::GetOrCreateElement(elem->GetLastChild());
 }
 
-rml::handle rml::elem::get_child(handle element, int index)
+ElemBase* Elem::GetChild(int index)
 {
-	const auto elem = reinterpret_cast<Rml::Element*>(element);
-	return reinterpret_cast<handle>(elem->GetChild(index));
+	const auto elem = element;
+	return api::GetOrCreateElement(elem->GetChild(index));
 }
 
-int rml::elem::get_child_count(handle element)
+int Elem::GetChildCount()
 {
-	const auto elem = reinterpret_cast<Rml::Element*>(element);
+	const auto elem = element;
 	return elem->GetNumChildren();
 }
 
-rml::handle rml::elem::append_child(handle element, handle new_element)
+ElemBase* Elem::AppendChild(ElemBase* new_element)
 {
-	const auto elem = reinterpret_cast<Rml::Element*>(element);
-	const auto child = reinterpret_cast<Rml::Element*>(new_element);
+	const auto elem = element;
+	const auto child = dynamic_cast<Elem*>(new_element)->element;
 
 	Rml::ElementPtr oldElement(child);
-	const auto ret = reinterpret_cast<handle>(elem->AppendChild(std::move(oldElement)));
+	const auto ret = api::GetOrCreateElement(elem->AppendChild(std::move(oldElement)));
 	oldElement.release();
 	return ret;
 }
 
-rml::handle rml::elem::insert_before(handle element, handle new_element, handle adjacent_element)
+ElemBase* Elem::InsertBefore(ElemBase* new_element, ElemBase* adjacent_element)
 {
-	const auto elem = reinterpret_cast<Rml::Element*>(element);
-	const auto child = reinterpret_cast<Rml::Element*>(new_element);
-	const auto adjacent = reinterpret_cast<Rml::Element*>(adjacent_element);
+	const auto elem = element;
+	const auto child = dynamic_cast<Elem*>(new_element)->element;
+	const auto adjacent = dynamic_cast<Elem*>(adjacent_element)->element;
 
 	Rml::ElementPtr oldElement(child);
-	const auto ret = reinterpret_cast<handle>(elem->InsertBefore(std::move(oldElement), adjacent));
+	const auto ret = api::GetOrCreateElement(elem->InsertBefore(std::move(oldElement), adjacent));
 	oldElement.release();
 	return ret;
 }
 
-rml::handle rml::elem::replace_child(handle element, handle new_element, handle old_element)
+ElemBase* Elem::ReplaceChild(ElemBase* new_element, ElemBase* old_element)
 {
-	const auto elem = reinterpret_cast<Rml::Element*>(element);
-	const auto child = reinterpret_cast<Rml::Element*>(new_element);
-	const auto old = reinterpret_cast<Rml::Element*>(old_element);
+	const auto elem = element;
+	const auto child = dynamic_cast<Elem*>(new_element)->element;
+	const auto old = dynamic_cast<Elem*>(old_element)->element;
 
 	Rml::ElementPtr oldElement(child);
 	auto ret_ptr = elem->ReplaceChild(std::move(oldElement), old);
 	const auto ret = ret_ptr.get();
 	ret_ptr.release();
 	oldElement.release();
-	return reinterpret_cast<rml::handle>(ret);
+	return api::GetOrCreateElement(ret);
 }
 
-rml::handle rml::elem::remove_child(handle element, handle child_element)
+ElemBase* Elem::RemoveChild(ElemBase* child_element)
 {
-	const auto elem = reinterpret_cast<Rml::Element*>(element);
-	const auto child = reinterpret_cast<Rml::Element*>(child_element);
+	const auto elem = element;
+	const auto child = dynamic_cast<Elem*>(child_element)->element;
 	auto ret_ptr = elem->RemoveChild(child);
 	const auto ret = ret_ptr.get();
 	ret_ptr.release();
-	return reinterpret_cast<rml::handle>(ret);
+	return api::GetOrCreateElement(ret);
 }
 
-bool rml::elem::has_children(handle element)
+bool Elem::HasChildren()
 {
-	const auto elem = reinterpret_cast<Rml::Element*>(element);
+	const auto elem = element;
 	return elem->HasChildNodes();
 }
 
-char* rml::elem::get_inner_rml(handle element)
+std::string Elem::GetInnerRML()
 {
-	const auto elem = reinterpret_cast<Rml::Element*>(element);
-	return (char*)elem->GetInnerRML().c_str();
+	const auto elem = element;
+	return elem->GetInnerRML();
 }
 
-void rml::elem::set_inner_rml(handle element, const char* value)
+void Elem::SetInnerRML(std::string value)
 {
-	const auto elem = reinterpret_cast<Rml::Element*>(element);
+	const auto elem = element;
 	elem->SetInnerRML(value);
 }
 
-bool rml::elem::focus(handle element)
+bool Elem::Focus()
 {
-	const auto elem = reinterpret_cast<Rml::Element*>(element);
+	const auto elem = element;
 	return elem->Focus();
 }
 
-void rml::elem::blur(handle element)
+void Elem::Blur()
 {
-	const auto elem = reinterpret_cast<Rml::Element*>(element);
+	const auto elem = element;
 	return elem->Blur();
 }
 
-void rml::elem::click(handle element)
+void Elem::Click()
 {
-	const auto elem = reinterpret_cast<Rml::Element*>(element);
+	const auto elem = element;
 	return elem->Click();
 }
 
-void rml::elem::scroll_into_view(handle element, bool align_with_top)
+void Elem::ScrollIntoView(bool align_with_top)
 {
-	const auto elem = reinterpret_cast<Rml::Element*>(element);
+	const auto elem = element;
 	elem->ScrollIntoView(align_with_top);
 }
 
-rml::handle rml::elem::get_element_by_id(handle element, const char* id)
+ElemBase* Elem::GetElementById(std::string id)
 {
-	const auto elem = reinterpret_cast<Rml::Element*>(element);
-	return reinterpret_cast<handle>(elem->GetElementById(id));
+	const auto elem = element;
+	return api::GetOrCreateElement(elem->GetElementById(id));
 }
 
-rml::ptr_array::handle rml::elem::get_elements_by_tag_name(handle element, const char* tag)
+std::vector<ElemBase*> Elem::GetElementsByTagName(std::string tag)
 {
-	const auto elem = reinterpret_cast<Rml::Element*>(element);
-	Rml::ElementList* elements = new Rml::ElementList();
-	elem->GetElementsByTagName(*elements, tag);
-	return reinterpret_cast<ptr_array::handle>(elements);
+	const auto elem = element;
+	Rml::ElementList elements;
+	elem->GetElementsByTagName(elements, tag);
+	std::vector<ElemBase*> vec;
+	for (auto elem : elements)
+		vec.push_back(api::GetOrCreateElement(elem));
+	return vec;
 }
 
-rml::ptr_array::handle rml::elem::get_elements_by_class_name(handle element, const char* tag)
+std::vector<ElemBase*> Elem::GetElementsByClassName(std::string tag)
 {
-	const auto elem = reinterpret_cast<Rml::Element*>(element);
-	Rml::ElementList* elements = new Rml::ElementList();
-	elem->GetElementsByClassName(*elements, tag);
-	return reinterpret_cast<ptr_array::handle>(elements);
+	const auto elem = element;
+	Rml::ElementList elements;
+	elem->GetElementsByClassName(elements, tag);
+	std::vector<ElemBase*> vec;
+	for (auto elem : elements)
+		vec.push_back(api::GetOrCreateElement(elem));
+	return vec;
 }
 
-rml::handle rml::elem::query_selector(handle element, const char* selector)
+ElemBase* Elem::QuerySelector(std::string selector)
 {
-	const auto elem = reinterpret_cast<Rml::Element*>(element);
-	return reinterpret_cast<handle>(elem->QuerySelector(selector));
+	const auto elem = element;
+	return api::GetOrCreateElement(elem->QuerySelector(selector));
 }
 
-rml::ptr_array::handle rml::elem::query_selector_all(handle element, const char* selector)
+std::vector<ElemBase*> Elem::QuerySelectorAll(std::string selector)
 {
-	const auto elem = reinterpret_cast<Rml::Element*>(element);
-	Rml::ElementList* elements = new Rml::ElementList();
-	elem->QuerySelectorAll(*elements, selector);
-	return reinterpret_cast<ptr_array::handle>(elements);
+	const auto elem = element;
+	Rml::ElementList elements;
+	elem->QuerySelectorAll(elements, selector);
+	std::vector<ElemBase*> vec;
+	for (auto elem : elements)
+		vec.push_back(api::GetOrCreateElement(elem));
+	return vec;
 }
 
-rml::handle rml::elem::get_owner_document(handle element)
+ElemBase* Elem::GetOwnerDocument()
 {
-	const auto elem = reinterpret_cast<Rml::Element*>(element);
-	return reinterpret_cast<handle>(elem->GetOwnerDocument());
+	const auto elem = element;
+	return api::GetOrCreateElement(elem->GetOwnerDocument());
 }
 
-char* rml::elem::form_control_get_value(handle element)
+std::string Elem::FormControlGetValue()
 {
 	const auto elem = reinterpret_cast<Rml::ElementFormControl*>(element);
-	return (char*)elem->GetValue().c_str();
+	return elem->GetValue();
 }
 
-
-void rml::elem::form_control_set_value(handle element, const char* value)
+void Elem::FormControlSetValue(std::string value)
 {
 	const auto elem = reinterpret_cast<Rml::ElementFormControl*>(element);
 	elem->SetValue(value);
-}
-
-int rml::variant::get_type(handle variant)
-{
-	return reinterpret_cast<Rml::Variant*>(variant)->GetType();
-}
-
-bool rml::variant::to_bool(handle variant)
-{
-	return reinterpret_cast<Rml::Variant*>(variant)->Get<bool>();
-}
-
-long long rml::variant::to_int(handle variant)
-{
-	return reinterpret_cast<Rml::Variant*>(variant)->Get<long long>();
-}
-
-unsigned long long rml::variant::to_uint(handle variant)
-{
-	return reinterpret_cast<Rml::Variant*>(variant)->Get<unsigned long long>();
-}
-
-double rml::variant::to_double(handle variant)
-{
-	return reinterpret_cast<Rml::Variant*>(variant)->Get<double>();
-}
-
-char* rml::variant::to_string(handle variant)
-{
-	return reinterpret_cast<Rml::Variant*>(variant)->Get<char*>();
-}
-
-rml::variant::vec2 rml::variant::to_vec2(handle variant)
-{
-	return reinterpret_cast<Rml::Variant*>(variant)->Get<rml::variant::vec2>();
-}
-
-rml::variant::vec3 rml::variant::to_vec3(handle variant)
-{
-	return reinterpret_cast<Rml::Variant*>(variant)->Get<rml::variant::vec3>();
-}
-
-rml::variant::vec4 rml::variant::to_vec4(handle variant)
-{
-	return reinterpret_cast<Rml::Variant*>(variant)->Get<rml::variant::vec4>();
-}
-
-rml::variant::fcolor rml::variant::to_fcolor(handle variant)
-{
-	return reinterpret_cast<Rml::Variant*>(variant)->Get<rml::variant::fcolor>();
-}
-
-rml::variant::color rml::variant::to_color(handle variant)
-{
-	return reinterpret_cast<Rml::Variant*>(variant)->Get<rml::variant::color>();
-}
-
-void* rml::variant::to_void_ptr(handle variant)
-{
-	return reinterpret_cast<Rml::Variant*>(variant)->Get<void*>();
-}
-
-int rml::dict::get_dict_size(handle dictionary)
-{
-	return reinterpret_cast<Rml::Dictionary*>(dictionary)->size();
-}
-
-char* rml::dict::get_key(handle dictionary, int at)
-{
-	const auto dict = reinterpret_cast<Rml::Dictionary*>(dictionary);
-	if (at >= dict->size())
-		return nullptr;
-
-	const auto it = dict->begin() + at;
-	return (char*)it->first.c_str();
-}
-
-rml::variant::handle rml::dict::get_value_by_id(handle dictionary, int at)
-{
-	const auto dict = reinterpret_cast<Rml::Dictionary*>(dictionary);
-	if (at >= dict->size())
-		return nullptr;
-
-	const auto it = dict->begin() + at;
-	return reinterpret_cast<rml::variant::handle>(&it->second);
-}
-
-rml::variant::handle rml::dict::get_value_by_key(handle dictionary, const char* key)
-{
-	const auto dict = reinterpret_cast<Rml::Dictionary*>(dictionary);
-
-	if(const auto it = dict->find(key); it != dict->end())
-	    return reinterpret_cast<rml::variant::handle>(&it->second);
-
-	return nullptr;
-}
-
-int rml::ptr_array::get_arr_size(handle arr)
-{
-	const auto vec_ptr = reinterpret_cast<std::vector<void*>*>(arr);
-	return vec_ptr->size();
-}
-
-void* rml::ptr_array::get_at(handle arr, int at)
-{
-	const auto vec_ptr = reinterpret_cast<std::vector<void*>*>(arr);
-	if (vec_ptr->size() >= at)
-		return nullptr;
-	return vec_ptr->at(at);
-}
-
-void rml::ptr_array::destroy_arr(handle arr)
-{
-	delete reinterpret_cast<std::vector<void*>*>(arr);
-}
-
-rml::handle rml::elem_ptr::get_ptr(handle ptr)
-{
-	const auto elem = reinterpret_cast<Rml::ElementPtr*>(ptr)->get();
-	return reinterpret_cast<rml::handle>(elem);
-}
-
-void rml::elem_ptr::destroy_ptr(handle ptr)
-{
-	delete reinterpret_cast<Rml::ElementPtr*>(ptr);
-}
-
-file::handle app::file_open(const char* path)
-{
-	return reinterpret_cast<file::handle>(Rml::GetFileInterface()->Open(path));
-}
-
-void app::file_close(file::handle file)
-{
-	Rml::GetFileInterface()->Close(reinterpret_cast<Rml::FileHandle>(file));
-}
-
-unsigned long long app::file_read(file::handle file, void* buffer, unsigned long long size)
-{
-	return Rml::GetFileInterface()->Read(buffer, size, reinterpret_cast<Rml::FileHandle>(file));
-}
-
-bool app::file_seek(file::handle file, long offset, int origin)
-{
-	return Rml::GetFileInterface()->Seek(reinterpret_cast<Rml::FileHandle>(file), offset, origin);
-}
-
-unsigned long long app::file_tell(file::handle file)
-{
-	return Rml::GetFileInterface()->Tell(reinterpret_cast<Rml::FileHandle>(file));
-}
-
-unsigned long long app::file_length(file::handle file)
-{
-	return Rml::GetFileInterface()->Length(reinterpret_cast<Rml::FileHandle>(file));
-}
-
-void app::load_font_face(const char* path, bool is_default)
-{
-	Rml::LoadFontFace(path, is_default);
 }

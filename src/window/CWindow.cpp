@@ -29,8 +29,7 @@ CWindow::CWindow(const Eigen::Vector4i& size)
     m_event_handler = nullptr;
     m_render_handler = nullptr;
     m_update_handler = nullptr;
-
-    m_ready = false;
+    
     m_bgfx = std::make_unique<ui::CCoreBGFX>(this, m_wnd_size);
     m_ready = true;
 }
@@ -53,28 +52,22 @@ void CWindow::Start()
         m_render_init_handler();
 }
 
-void CWindow::RunApi()
-{
-
-
-    while (m_running)
-    {
-
-    }
-}
-
-bool CWindow::SendEvent(Rml::Element* target, Rml::EventId id, const Rml::String& name, const Rml::Dictionary& parameters, bool interruptible)
+bool CWindow::SendEvent(Rml::Element* target, const Rml::String& name, const Rml::Dictionary& parameters)
 {
     if (m_event_handler)
-        return m_event_handler(reinterpret_cast<rml::handle>(target), (int)id, name.c_str(), reinterpret_cast<rml::dict::handle>((void*)&parameters), interruptible);
+    {
+        std::unordered_map<std::string, t_api_variant> map;
+
+        for(auto& param : parameters)
+        {
+            map[param.first] = api::FromRmlVariant(param.second);
+            //SPDLOG_INFO("param {} type {}", param.first, map[param.first].index());
+        }
+
+        return m_event_handler(api::GetOrCreateElement(target), name.c_str(), map);
+    }
 
     return true;
-}
-
-int32_t CWindow::ApiThread(bx::Thread* self, void* userData)
-{
-    static_cast<CWindow*>(userData)->RunApi();
-    return 0;
 }
 
 void CWindow::Loop()

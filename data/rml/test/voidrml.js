@@ -1,0 +1,1 @@
+module.exports = require('./rmlui-bgfx-test-node.node');

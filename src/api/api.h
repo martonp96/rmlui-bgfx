@@ -1,213 +1,160 @@
 #pragma once
+#include "api_base.h"
 
-#if !defined(API_FUNC) 
-    #if defined(BUILD_STATIC) || defined(BUILD_BINARY)
-        #define API_FUNC
-    #elif defined(_WIN32)
-        #if defined(BUILD_SHARED)
-            #define API_FUNC extern "C" __declspec(dllexport)
-        #else
-            #define API_FUNC extern "C" __declspec(dllimport)
-        #endif
-    #else
-        #define API_FUNC
-    #endif
-#endif
-
-#if defined(_WIN32)
-#define API_HANDLE(ns) namespace ns{ typedef struct {} *handle; }
-#else
-#define API_HANDLE(ns) namespace ns{ typedef void* handle; }
-#endif
-
-API_HANDLE(rml);
-API_HANDLE(app);
-API_HANDLE(file);
-API_HANDLE(rml::variant);
-API_HANDLE(rml::dict);
-API_HANDLE(rml::ptr_array);
-API_HANDLE(rml::elem_ptr);
-
-namespace app
+namespace window
 {
-    typedef bool(*t_rml_event_handler)(rml::handle element, unsigned short id, const char* name, rml::dict::handle parameters, bool interruptible);
-    typedef void(*t_generic_event_handler)();
-
-    API_FUNC handle create(int width, int height);
-    API_FUNC void destroy(handle app);
-    API_FUNC void start(handle app); //needed so you can register event handlers before they are fired
-    API_FUNC bool is_running(handle app);
-    API_FUNC bool is_ready(handle app);
-    API_FUNC void run_loop(handle app);
-
-    API_FUNC rml::handle create_document(handle app, const char* rml);
-    API_FUNC rml::handle load_document(handle app, const char* path);
-    API_FUNC rml::handle get_document(handle app);
-
-    API_FUNC void register_event_handler(handle app, t_rml_event_handler handler);
-    API_FUNC void register_render_event_handler(handle app, t_generic_event_handler handler);
-    API_FUNC void register_update_event_handler(handle app, t_generic_event_handler handler);
-    API_FUNC void register_window_init_event_handler(handle app, t_generic_event_handler handler);
-    API_FUNC void register_render_init_event_handler(handle app, t_generic_event_handler handler);
-
-    API_FUNC file::handle file_open(const char* path);
-    API_FUNC void file_close(file::handle file);
-
-    API_FUNC unsigned long long file_read(file::handle file, void* buffer, unsigned long long size);
-    API_FUNC bool file_seek(file::handle file, long offset, int origin);
-    API_FUNC unsigned long long file_tell(file::handle file);
-    API_FUNC unsigned long long file_length(file::handle file);
-
-    API_FUNC void load_font_face(const char* path, bool is_default);
+    class CWindow;
 }
 
-namespace rml::doc
+class Doc;
+class Elem;
+
+class App : public AppBase
 {
-    API_FUNC void set_visible(handle document, bool toggle);
-    API_FUNC void update(handle document);
+    window::CWindow* m_wnd;
+public:
+    App(int width, int height);
 
-    API_FUNC rml::handle get_body(handle document);
-    API_FUNC elem_ptr::handle create_element(handle document, const char* name);
-    API_FUNC elem_ptr::handle create_text_node(handle document, const char* text);
-}
+    void Destroy() override;
+    void Start() override; //needed so you can register event handlers before they are fired
+    bool IsRunning() override;
+    bool IsReady() override;
+    void RunLoop() override;
 
-namespace rml::elem_ptr
+    DocBase* CreateDocument(std::string rml) override;
+    DocBase* LoadDocument(std::string path) override;
+    DocBase* GetDocument() override;
+
+    void RegisterRmlEventHandler(const t_rml_event_handler& handler) override;
+    void RegisterRenderEventHandler(const t_generic_event_handler& handler) override;
+    void RegisterUpdateEventHandler(const t_generic_event_handler& handler) override;
+    void RegisterWindowInitEventHandler(const t_generic_event_handler& handler) override;
+    void RegisterRenderInitEventHandler(const t_generic_event_handler& handler) override;
+
+    void LoadFontFace(std::string path, bool is_default) override;
+};
+
+class Elem : public virtual ElemBase
 {
-    API_FUNC rml::handle get_ptr(handle ptr);
-    API_FUNC void destroy_ptr(handle ptr);
-}
+protected:
+    Rml::Element* element = nullptr;
+    //Rml::ElementPtr* element_ptr = nullptr;
 
-namespace rml::variant
+public:
+    Elem(Rml::Element* elem);
+    //Elem(Rml::ElementPtr* elem);
+
+    bool AddClass(std::string name) override;
+    bool RemoveClass(std::string name) override;
+    bool HasClass(std::string name) override;
+    std::string GetClassList() override;
+
+    bool AddPseudoClass(std::string name) override;
+    bool RemovePseudoClass(std::string name) override;
+    bool HasPseudoClass(std::string name) override;
+    std::vector<std::string> GetPseudoClassList() override;
+
+    void SetOffset(ElemBase* offset_parent, float offset_x, float offset_y, bool fixed) override;
+    t_api_variant GetRelativeOffset() override;
+    t_api_variant GetAbsoluteOffset() override;
+    float GetBaseline() override;
+    float GetZIndex() override;
+
+    bool IsPointWithinElement(float point_x, float point_y) override;
+
+    bool SetProperty(std::string name, std::string value) override;
+    bool RemoveProperty(std::string name) override;
+    bool HasProperty(std::string name) override;
+    bool HasLocalProperty(std::string name) override;
+    std::string GetProperty(std::string name) override;
+    std::string GetLocalProperty(std::string name) override;
+    float GetPropertyAbsoluteValue(std::string name) override;
+
+    t_api_variant GetContainingBlock() override;
+
+    ElemBase* GetFocusedElement() override;
+
+    std::string GetTagName() override;
+    std::string GetId() override;
+    void SetId(std::string id) override;
+
+    void SetAttribute(std::string name, std::string value) override;
+    bool RemoveAttribute(std::string name) override;
+    bool HasAttribute(std::string name) override;
+    std::string GetAttribute(std::string name) override;
+    std::unordered_map<std::string, t_api_variant> GetAttributes() override;
+
+    float GetAbsoluteLeft() override;
+    float GetAbsoluteTop() override;
+    float GetClientLeft() override;
+    float GetClientTop() override;
+    float GetClientWidth() override;
+    float GetClientHeight() override;
+    ElemBase* GetOffsetParent() override;
+    float GetOffsetLeft() override;
+    float GetOffsetTop() override;
+    float GetOffsetWidth() override;
+    float GetOffsetHeight() override;
+
+    float GetScrollLeft() override;
+    void SetScrollLeft(float value) override;
+    float GetScrollTop() override;
+    void SetScrollTop(float value) override;
+    float GetScrollWidth() override;
+    float GetScrollHeight() override;
+
+    bool IsVisible() override;
+
+    ElemBase* GetParent() override;
+    ElemBase* GetClosest(std::string selectors) override;
+    ElemBase* GetNextSibling() override;
+    ElemBase* GetPreviousSibling() override;
+    ElemBase* GetFirstChild() override;
+    ElemBase* GetLastChild() override;
+    ElemBase* GetChild(int index) override;
+    int GetChildCount() override;
+    ElemBase* AppendChild(ElemBase* new_element) override;
+    ElemBase* InsertBefore(ElemBase* new_element, ElemBase* adjacent_element) override;
+    ElemBase* ReplaceChild(ElemBase* new_element, ElemBase* old_element) override;
+    ElemBase* RemoveChild(ElemBase* child) override;
+    bool HasChildren() override;
+
+    std::string GetInnerRML() override;
+    void SetInnerRML(std::string value) override;
+
+    bool Focus() override;
+    void Blur() override;
+    void Click() override;
+    void ScrollIntoView(bool align_with_top = true) override;
+
+    ElemBase* GetElementById(std::string id) override;
+    std::vector<ElemBase*> GetElementsByTagName(std::string tag) override;
+    std::vector<ElemBase*> GetElementsByClassName(std::string tag) override;
+    ElemBase* QuerySelector(std::string selector) override;
+    std::vector<ElemBase*> QuerySelectorAll(std::string selector) override;
+
+    ElemBase* GetOwnerDocument() override;
+
+    std::string FormControlGetValue() override;
+    void FormControlSetValue(std::string value) override;
+};
+
+class Doc : public virtual DocBase, public Elem
 {
-    struct vec2 { float x, y; };
-    struct vec3 { float x, y, z; };
-    struct vec4 { float x, y, z, w; };
-    struct fcolor { float r, g, b, a; };
-    struct color { unsigned char r, g, b, a; };
-    
-    API_FUNC int get_type(handle variant);
-    API_FUNC bool to_bool(handle variant);
-    API_FUNC long long to_int(handle variant);
-    API_FUNC unsigned long long to_uint(handle variant);
-    API_FUNC double to_double(handle variant);
-    API_FUNC char* to_string(handle variant);
-    API_FUNC vec2 to_vec2(handle variant);
-    API_FUNC vec3 to_vec3(handle variant);
-    API_FUNC vec4 to_vec4(handle variant);
-    API_FUNC fcolor to_fcolor(handle variant);
-    API_FUNC color to_color(handle variant);
-    API_FUNC void* to_void_ptr(handle variant);
-}
+public:
+    Doc(Rml::ElementDocument* elem) : Elem(static_cast<Rml::Element*>(elem)) {}
 
-namespace rml::dict
+    void SetVisible(bool toggle) override;
+    void Update() override;
+
+    DocBase* GetBody() override;
+    ElemBase* CreateElement(std::string name) override;
+    ElemBase* CreateTextNode(std::string text) override;
+};
+
+namespace api
 {
-    API_FUNC int get_dict_size(handle dictionary);
-    API_FUNC char* get_key(handle dictionary, int at);
-    API_FUNC variant::handle get_value_by_id(handle dictionary, int at);
-    API_FUNC variant::handle get_value_by_key(handle dictionary, const char* key);
-}
-
-namespace rml::ptr_array
-{
-    API_FUNC int get_arr_size(handle arr);
-    API_FUNC void* get_at(handle arr, int at);
-    API_FUNC void destroy_arr(handle arr);
-}
-
-namespace rml::elem
-{
-    API_FUNC bool add_class(handle element, const char* name);
-    API_FUNC bool remove_class(handle element, const char* name);
-    API_FUNC bool has_class(handle element, const char* name);
-    API_FUNC char* get_class_list(handle element);
-
-    API_FUNC bool add_pseudo_class(handle element, const char* name);
-    API_FUNC bool remove_pseudo_class(handle element, const char* name);
-    API_FUNC bool has_pseudo_class(handle element, const char* name);
-    API_FUNC ptr_array::handle get_pseudo_class_list(handle element);
-
-    API_FUNC void set_offset(handle element, handle offset_parent, float offset_x, float offset_y, bool fixed);
-    API_FUNC float get_relative_offset_x(handle element);
-    API_FUNC float get_relative_offset_y(handle element);
-    API_FUNC float get_baseline(handle element);
-    API_FUNC float get_z_index(handle element);
-
-    API_FUNC bool is_point_within_element(handle element, float point_x, float point_y);
-
-    API_FUNC bool set_property(handle element, const char* name, const char* value);
-    API_FUNC bool remove_property(handle element, const char* name);
-    API_FUNC bool has_property(handle element, const char* name);
-    API_FUNC bool has_local_property(handle element, const char* name);
-    API_FUNC char* get_property(handle element, const char* name);
-    API_FUNC char* get_local_property(handle element, const char* name);
-    API_FUNC float get_property_absolute_value(handle element, const char* name);
-
-    API_FUNC float get_containing_block_x(handle element);
-    API_FUNC float get_containing_block_y(handle element);
-
-    API_FUNC handle get_focused_element(handle element);
-
-    API_FUNC char* get_tag_name(handle element);
-    API_FUNC char* get_id(handle element);
-    API_FUNC void set_id(handle element, const char* id);
-
-    API_FUNC void set_attribute(handle element, const char* name, const char* value);
-    API_FUNC bool remove_attribute(handle element, const char* name);
-    API_FUNC bool has_attribute(handle element, const char* name);
-    API_FUNC char* get_attribute(handle element, const char* name);
-    API_FUNC dict::handle get_attributes(handle element);
-
-    API_FUNC float get_absolute_left(handle element);
-    API_FUNC float get_absolute_top(handle element);
-    API_FUNC float get_client_left(handle element);
-    API_FUNC float get_client_top(handle element);
-    API_FUNC float get_client_width(handle element);
-    API_FUNC float get_client_height(handle element);
-    API_FUNC handle get_offset_parent(handle element);
-    API_FUNC float get_offset_left(handle element);
-    API_FUNC float get_offset_top(handle element);
-    API_FUNC float get_offset_width(handle element);
-    API_FUNC float get_offset_height(handle element);
-
-    API_FUNC float get_scroll_left(handle element);
-    API_FUNC void set_scroll_left(handle element, float value);
-    API_FUNC float get_scroll_top(handle element);
-    API_FUNC void set_scroll_top(handle element, float value);
-    API_FUNC float get_scroll_width(handle element);
-    API_FUNC float get_scroll_height(handle element);
-
-    API_FUNC bool is_visible(handle element);
-
-    API_FUNC handle get_parent(handle element);
-    API_FUNC handle get_closest(handle element, const char* selectors);
-    API_FUNC handle get_next_sibling(handle element);
-    API_FUNC handle get_previous_sibling(handle element);
-    API_FUNC handle get_first_child(handle element);
-    API_FUNC handle get_last_child(handle element);
-    API_FUNC handle get_child(handle element, int index);
-    API_FUNC int get_child_count(handle element);
-    API_FUNC handle append_child(handle element, handle new_element);
-    API_FUNC handle insert_before(handle element, handle new_element, handle adjacent_element);
-    API_FUNC handle replace_child(handle element, handle new_element, handle old_element);
-    API_FUNC handle remove_child(handle element, handle child);
-    API_FUNC bool has_children(handle element);
-
-    API_FUNC char* get_inner_rml(handle element);
-    API_FUNC void set_inner_rml(handle element, const char* value);
-
-    API_FUNC bool focus(handle element);
-    API_FUNC void blur(handle element);
-    API_FUNC void click(handle element);
-    API_FUNC void scroll_into_view(handle element, bool align_with_top = true);
-
-    API_FUNC handle get_element_by_id(handle element, const char* id);
-    API_FUNC ptr_array::handle get_elements_by_tag_name(handle element, const char* tag);
-    API_FUNC ptr_array::handle get_elements_by_class_name(handle element, const char* tag);
-    API_FUNC handle query_selector(handle element, const char* selector);
-    API_FUNC ptr_array::handle query_selector_all(handle element, const char* selector);
-
-    API_FUNC handle get_owner_document(handle element);
-
-    API_FUNC char* form_control_get_value(handle element);
-    API_FUNC void form_control_set_value(handle element, const char* value);
+    t_api_variant FromRmlVariant(const Rml::Variant& rml_variant);
+    ElemBase* GetOrCreateElement(Rml::Element* rml_element);
+    ElemBase* GetOrCreateElement(Rml::ElementPtr* rml_element_ptr);
 }
